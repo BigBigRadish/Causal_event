@@ -85,7 +85,7 @@ if __name__ == '__main__':
     collection=db.forum_articles_50
     lanmu=['hongguanjingji','tizhigaige','sannongwenti','chanyejingji','jinrong','jiuye','zhuanjiaqita']#宏观经济，体制改革，三农问题，产业经济，金融与外贸，人口与就业，其他               
     crawl_forum50_article(lanmu,collection)
-    db.close()            
+    mongo_con.close() #关闭连接           
             
             
         
