@@ -30,8 +30,8 @@ headers={'User-Agent':user_agent}
 requests.adapters.DEFAULT_RETRIES = 5
 mu = threading.Lock()
 def craw_sina_finance_articles(collection):
-    for i in range(1,22):
-        sina_url='http://finance.sina.com.cn/roll/index.d.html?cid=57565&page'+str(i)
+    for i in range(22,22):
+        sina_url='http://finance.sina.com.cn/roll/index.d.html?cid=57565&page='+str(i)
         logging.captureWarnings(True)
     #     r = requests.get(sina_url,headers=headers,verify=False)
     #     _cookies=r.cookies#获取cookie
@@ -50,9 +50,12 @@ def craw_sina_finance_articles(collection):
             r = requests.get(article_url,headers=headers,verify=False)
             soup1=BeautifulSoup(r.content,"lxml",from_encoding='utf-8')
             content=soup1.find(class_="articalContent")
-            article_content=content.text.strip().replace('\t','').replace('\n','').replace(' ','').replace('阅读┊收藏┊转载┊喜欢▼┊打印┊举报','').replace('免责声明：博主所发内容不构成买卖股票依据。股市有风险，入市需谨慎。新浪财经网站提供此互动平台不代表认可其观点。新浪财经所有博主不提供代客理财等非法业务。有私下进行收费咨询或推销其他产品服务，属于非法个人行为，与新浪财经无关，请各位网友务必不要上当受骗！查看博主原文>>@@title@@@@teacher_name@@：@@title@@0转载喜欢','').replace('\r','')
+            if (content!=None):
+                article_content=content.text.strip().replace('\t','').replace('\n','').replace(' ','').replace('阅读┊收藏┊转载┊喜欢▼┊打印┊举报','').replace('免责声明：博主所发内容不构成买卖股票依据。股市有风险，入市需谨慎。新浪财经网站提供此互动平台不代表认可其观点。新浪财经所有博主不提供代客理财等非法业务。有私下进行收费咨询或推销其他产品服务，属于非法个人行为，与新浪财经无关，请各位网友务必不要上当受骗！查看博主原文>>@@title@@@@teacher_name@@：@@title@@0转载喜欢','').replace('\r','')
+            else:
+                article_content=''
             if  mu.acquire(True): #确保文件写入成功
-                f.write(content)
+                f.write(article_content)
                 f.flush()
                 os.fsync(f)
                 f.close()
@@ -64,7 +67,7 @@ if __name__ == '__main__':
     db=mongo_con.Causal_event
     collection=db.sina_ecomics_articles
     craw_sina_finance_articles(collection)
-    db.close()
+    mongo_con.close()
         
         
         
