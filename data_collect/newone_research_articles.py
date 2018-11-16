@@ -13,13 +13,13 @@ import pytesser3
 import pytesseract
 import time
 import re
+from pdfminer.pdfparser import PDFParser,PDFDocument
 from pymongo import MongoClient
 from selenium.webdriver.support.select import Select
 from selenium import webdriver 
-options = webdriver.ChromeOptions() 
-prefs = {'download.default_directory': 'G:\\articles/',"download.prompt_for_download": False}
-options.add_experimental_option('prefs', prefs) 
-driver = webdriver.Chrome(chrome_options=options)
+from io import StringIO
+import os
+#os.environ["webdriver.chrome.driver"] = "C:\Program Files (x86)\Google\Chrome\Application\chromedriver.exe"
 tessdata_dir_config = '--tessdata-dir "D:\\tesseract-ocr\\tessdata"'#tessdata
 pytesseract.pytesseract.tesseract_cmd = 'D:\\tesseract-ocr\\tesseract.exe'#tesseract.exe路径
 def get_auth_code(driver,codeEelement):
@@ -61,7 +61,7 @@ def crawl_articles_detail(driver,collection,lanmu):
     page_text=driver.find_element_by_xpath('//td[@width="72"]').text#获取总页码信息
     page=int(re.findall('/ (.*)页',page_text)[0])
     #print(str(page))
-    for i in range(1,2):#2370篇，158页
+    for i in range(1,page):#2370篇，158页
         print("i:"+str(i))
    #driver.find_element_by_xpath('//a[@href="javascript:gopage(4);"]').click()
         driver.execute_script("gopage("+str(i)+")")#翻页
@@ -69,17 +69,18 @@ def crawl_articles_detail(driver,collection,lanmu):
         soup = BeautifulSoup(content, 'lxml')#试用beautifulsoup解析
         article_detail=soup.find(id="td5").findAll('li')
         #存储所有的文章链接+发表时间
-        n=0
+        
         for j in article_detail[0:]:
-            n+=1
-            print('n:'+str(n))
+#             n=0
+#             n+=1
+#             print('n:'+str(n))
             href=j.find('a')['href']#得到后缀链接
             publish_date=j.find('em').text#得到日期
             article_href.append(href+','+publish_date)
-        m=0
+        
         for k in article_href:
-            m+=1
-            print('m:'+str(m))
+#             m+=1
+#             print('m:'+str(m))
             article_url=k.split(',')[0]#文章后缀链接
             article_publish_time=k.split(',')[1]#文章发表时间
             driver.get('http://www.newone.com.cn'+article_url)
@@ -92,6 +93,7 @@ def crawl_articles_detail(driver,collection,lanmu):
                 article_pdf_url=soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold").find('a')['href']#文章后缀链接
                 pdf_article.append(article_pdf_url)
                 article_info={'报告类型':lanmu,'文章页码':i,'发表日期':article_publish_time,'文章链接':'http://www.newone.com.cn'+article_url,'文章标题':title,'文章作者':author,'pdf文件名':article_name,'pdf链接':article_pdf_url}
+                collection.insert(article_info)
             else:
                 continue
             #print(m)
@@ -101,10 +103,9 @@ def crawl_articles_detail(driver,collection,lanmu):
         selector.select_by_visible_text(lanmu)        
         time.sleep(1)
     for pdf_href in pdf_article: #保存文件，有问题
-        f=open('G:\\articles/1.pdf','wb')
-        content2=driver.get('http://www.newone.com.cn'+pdf_href)
-        f.write(content2)
-        time.sleep(3)
+        #f=open('G:\\articles/1.pdf','wb')
+        driver.get('http://www.newone.com.cn'+pdf_href)
+        time.sleep(2)
         
         
 
@@ -112,9 +113,13 @@ if __name__ == '__main__':
     mongo_con=MongoClient('172.20.66.56', 27017)
     db=mongo_con.Causal_event
     collection=db.newone__articles
-    driver = webdriver.Chrome()
+    options = webdriver.ChromeOptions() 
+    prefs = {'download.default_directory': 'G:/articles/',"download.prompt_for_download": False}
+    options.add_experimental_option('prefs', prefs) 
+    driver = webdriver.Chrome(chrome_options=options)
     driver.get('https://www.newone.com.cn/nwsecure/login_jiaoyi')#打开登陆网站
     driver.maximize_window()
+    time.sleep(30)#设置一下，自动保存文件
     imgElement = driver.find_element_by_id('codeimg')#获取图片元素
     authCodeText = get_auth_code(driver,imgElement)
     newone_login(driver,'1808494215','681218',authCodeText)
