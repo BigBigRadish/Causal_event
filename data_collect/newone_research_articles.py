@@ -63,45 +63,48 @@ def crawl_articles_detail(driver,collection,lanmu):
     #print(str(page))
     for i in range(1,page):#2370篇，158页
         print("i:"+str(i))
-   #driver.find_element_by_xpath('//a[@href="javascript:gopage(4);"]').click()
+    #driver.find_element_by_xpath('//a[@href="javascript:gopage(4);"]').click()
         driver.execute_script("gopage("+str(i)+")")#翻页
         content=driver.page_source.encode('utf-8')
         soup = BeautifulSoup(content, 'lxml')#试用beautifulsoup解析
         article_detail=soup.find(id="td5").findAll('li')
         #存储所有的文章链接+发表时间
-        
+        n=0
         for j in article_detail[0:]:
-#             n=0
-#             n+=1
-#             print('n:'+str(n))
+            n+=1
+            print('n:'+str(n))
             href=j.find('a')['href']#得到后缀链接
             publish_date=j.find('em').text#得到日期
             article_href.append(href+','+publish_date)
-        
-        for k in article_href:
-#             m+=1
-#             print('m:'+str(m))
-            article_url=k.split(',')[0]#文章后缀链接
-            article_publish_time=k.split(',')[1]#文章发表时间
-            driver.get('http://www.newone.com.cn'+article_url)
-            content1=driver.page_source.encode('utf-8')
-            soup1= BeautifulSoup(content1, 'lxml')#文章内容，包括pdf链接
-            title=soup1.find("h1").text#文章标题
-            author=soup1.find(class_="pop_cont").findAll('td')[1].text#文章作者
-            if soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold").find('a')!=None:
-                article_name=soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold").find('a').text#文章名
-                article_pdf_url=soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold").find('a')['href']#文章后缀链接
-                pdf_article.append(article_pdf_url)
-                article_info={'报告类型':lanmu,'文章页码':i,'发表日期':article_publish_time,'文章链接':'http://www.newone.com.cn'+article_url,'文章标题':title,'文章作者':author,'pdf文件名':article_name,'pdf链接':article_pdf_url}
-                collection.insert(article_info)
-            else:
-                continue
-            #print(m)
-            
         driver.get('http://www.newone.com.cn/researchcontroller/search')
         selector = Select(driver.find_element_by_tag_name('select'))
         selector.select_by_visible_text(lanmu)        
         time.sleep(1)
+    m=0
+    for k in article_href:
+        m+=1
+        print('m:'+str(m))
+        article_url=k.split(',')[0]#文章后缀链接
+        article_publish_time=k.split(',')[1]#文章发表时间
+        driver.get('http://www.newone.com.cn'+article_url)
+        content1=driver.page_source.encode('utf-8')
+        soup1= BeautifulSoup(content1, 'lxml')#文章内容，包括pdf链接
+        title=soup1.find("h1").text#文章标题
+        author=soup1.find(class_="pop_cont").findAll('td')[1].text#文章作者
+        if soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold")!=None:
+            if soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold").find('a')!=None:
+                article_name=soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold").find('a').text#文章名
+                article_pdf_url=soup1.find('span',style="color:#a2162e;font-size:16px;font-weight:bold").find('a')['href']#文章后缀链接
+                pdf_article.append(article_pdf_url)
+                article_info={'报告类型':lanmu,'发表日期':article_publish_time,'文章链接':'http://www.newone.com.cn'+article_url,'文章标题':title,'文章作者':author,'pdf文件名':article_name,'pdf链接':article_pdf_url}
+                collection.insert(article_info)
+            else:
+                continue
+        else:
+            continue
+        #print(m)
+            
+        
     for pdf_href in pdf_article: #保存文件，有问题
         #f=open('G:\\articles/1.pdf','wb')
         driver.get('http://www.newone.com.cn'+pdf_href)
