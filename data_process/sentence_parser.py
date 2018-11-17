@@ -12,6 +12,13 @@ import json
 import codecs
 from pymongo import MongoClient
 from _collections import defaultdict
+from bson import json_util
+from bson import ObjectId
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
 class LtpParser:
     def __init__(self):
         LTP_DIR = 'D:\LTP\MODEL\ltp_data'  # ltp模型目录的路径
@@ -80,7 +87,7 @@ class LtpParser:
 if __name__ == '__main__':
     mongo_con=MongoClient('172.20.66.56', 27017)
     db=mongo_con.Causal_event
-    collection=db.forum50_articles_anaysis
+    collection=db.forum50_articles_word
     parse = LtpParser()
     path = r'E:\\Causal_events\\forum50_articles'
     #sentence="我爱你,中国"
@@ -98,13 +105,14 @@ if __name__ == '__main__':
             line+=line   
         article_len=len(line)
         sentences=parse.sentence_splitter(sentence=line)
-        dict1=defaultdict()
+        dict1={}
         n=1
         for i in sentences:  
-            words, postags, child_dict_list, roles_dict, format_parse_list = parse.parser_main(i)
-            dict1[n]={"句子长度":len(words),"分词结果":words,"词性标注结果":postags,"孩子节点词典":child_dict_list,"语义角色":roles_dict,"依存结构":format_parse_list}
-        article={"文章标题":str(file),"文章长度":article_len,"文章分析结果":dict1}
-        collection.insert(article)
+            words = parse.segmentor.segment(i)
+            words=list(words)
+            dict1[str(n)]={"句子长度":str(len(words)),"分词结果":words}
+        article_word={"文章标题":str(file),"文章长度":str(article_len),"文章分词结果":dict1}
+        collection.insert(article_word)
         with open('E:\\Causal_events\\forum50_articles_anaysis\\'+file.replace('.txt','.json'), 'w',encoding='utf-8') as file_obj:
             '''写入json文件'''
-            json.dump(article, file_obj)    
+            json.dump(json_util.dumps(article_word),file_obj)    
