@@ -291,7 +291,7 @@ if __name__ == '__main__':
     db=mongo_con.Causal_event
     collection=db.forum50_articles_causality_extract
     extractor = CausalityExractor()
-    path = r'E:\\Causal_events\\forum50_articles'
+    path = r'E:\\Causal_events\\sina_economics_articles'
     #sentence="我爱你,中国"
     files = os.listdir(path)
     for file in files :
@@ -303,18 +303,23 @@ if __name__ == '__main__':
         with codecs.open(txt_path,'rb',encoding='utf-8') as f1:
             lines = f1.readlines()
         for line in lines:
-            line+=line   
+            line+=line
+        line=line.replace('阅读┊评论┊收藏┊转载┊喜欢▼┊打印┊举报','')
         datas = extractor.extract_main(line)
         biglist=[]
         for data in datas:
             cause=''.join([word.split('/')[0] for word in data['cause'].split(' ') if word.split('/')[0]])
             tag=data['tag']
             effect=''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]])
-            collection.insert({'栏目':'50人经济论坛','file':file,'cause':cause,'tag':tag,'effect':effect})
+            collection.insert({'栏目':'sina财经经济评论','file':file.replace('.txt',''),'cause':cause,'tag':tag,'effect':effect})
             #print('tag', data['tag'])
             #print('effect', ''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]]))
-            biglist.append(['50人经济论坛',file,cause,tag,effect])
+            biglist.append(['sina财经经济评论',file.replace('.txt',''),cause,tag,effect])
+        list2=[]#去重
+        for i in biglist:
+            if i not in list2:
+                list2.append(i)
         name=['栏目','文件名','原因','标签','结果']
-        article_anaysis=pd.DataFrame(columns=name,data=biglist)
-        article_anaysis.to_csv('E:\\Causal_events\\forum50_articles_causality_extract\\'+file+'.csv',encoding='utf-8') 
+        article_anaysis=pd.DataFrame(columns=name,data=list2)
+        article_anaysis.to_csv('E:\\Causal_events\\sina_articles_causality_extract\\'+file.replace('.txt','.csv'),encoding='utf-8') 
         
