@@ -14,7 +14,7 @@ import os
 from pymongo import MongoClient
 import codecs
 import pandas as pd
-# class CausalitySentencesExractor():
+# class CausalitySentencesExractor():#提取因果句子
 #     def __init__(self):
 #         pass
 # 
@@ -340,34 +340,38 @@ if __name__ == '__main__':
     path = r'E:\\Causal_events\\forum50_articles_causality_extract'
     #sentence="我爱你,中国"
     files = os.listdir(path)
-    for file in files[467:] :
-        pathname = os.path.join(path, file)
-        print(file)
+#     i=1251
+    for file in files[1708:] :
+#         i+=1
+#         while(file=='税务文明的核心是依法治税(2002.10.25).txt.csv'):
+#             print(i)
+         pathname = os.path.join(path, file)
+         print(file)
         #准确获取一个txt的位置，利用字符串的拼接
-        txt_path = pathname
-        f = open(txt_path,'r',encoding='utf-8')
-        article_causality_sentence=pd.read_csv(f).drop_duplicates(subset=['原因','结果'])
-        #print(datas)
-        yuanyin=[]
-        jieguo=[]
-        for index,i in article_causality_sentence.iterrows():
-            svos=1
-            yuanyin_svos = extractor1.triples_main(i['原因'])#原因三元组对
-            tag=i['标签']#事件标签
-            jieguo_svos = extractor1.triples_main(i['结果'])#原因三元组对
-            if len(yuanyin_svos)==0:
-                yuanyin_svos.append(i['原因'])
-                svos=0
-            if len(jieguo_svos)==0:
-                jieguo_svos.append(i['结果'])
-                svos=0    
-            yuanyin.append(yuanyin_svos)
-            jieguo.append(jieguo_svos)             
-            collection.insert({'栏目':'50人经济论坛','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
-        article_causality_sentence['原因三元组']=yuanyin
-        article_causality_sentence['结果三元组']=jieguo
-        article_causality_sentence.to_csv('E:\\Causal_events\\forum50_articles__triple_extraction\\'+str(file))
-             
+         txt_path = pathname
+         f = open(txt_path,'r',encoding='utf-8')
+         article_causality_sentence=pd.read_csv(f).drop_duplicates(subset=['原因','结果'])
+         #print(datas)
+         yuanyin=[]
+         jieguo=[]
+         for index,i in article_causality_sentence.iterrows():
+             svos=1
+             yuanyin_svos = extractor1.triples_main(i['原因'])#原因三元组对
+             tag=i['标签']#事件标签
+             jieguo_svos = extractor1.triples_main(i['结果'])#结果三元组对
+             if len(yuanyin_svos)==0:
+                 yuanyin_svos.append(i['原因'])
+                 svos=0
+             if len(jieguo_svos)==0:
+                 jieguo_svos.append(i['结果'])
+                 svos=0    
+             yuanyin.append(yuanyin_svos)
+             jieguo.append(jieguo_svos)             
+             collection.insert({'栏目':'50人经济论坛','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
+         article_causality_sentence['原因三元组']=yuanyin
+         article_causality_sentence['结果三元组']=jieguo
+         article_causality_sentence.to_csv('E:\\Causal_events\\forum50_articles__triple_extraction\\'+str(file))
+#               
             
     
     
