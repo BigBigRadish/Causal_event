@@ -337,11 +337,11 @@ if __name__ == '__main__':
     db=mongo_con.Causal_event
     collection=db.triple_extraction
     #extractor = CausalitySentencesExractor()
-    path = r'E:\\Causal_events\\forum50_articles_causality_extract'
+    path = r'E:\\Causal_events\\sina_articles_causality_extract'
     #sentence="我爱你,中国"
     files = os.listdir(path)
 #     i=1251
-    for file in files[1708:] :
+    for file in files:
 #         i+=1
 #         while(file=='税务文明的核心是依法治税(2002.10.25).txt.csv'):
 #             print(i)
@@ -370,7 +370,7 @@ if __name__ == '__main__':
              collection.insert({'栏目':'50人经济论坛','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
          article_causality_sentence['原因三元组']=yuanyin
          article_causality_sentence['结果三元组']=jieguo
-         article_causality_sentence.to_csv('E:\\Causal_events\\forum50_articles__triple_extraction\\'+str(file))
+         article_causality_sentence.to_csv('E:\\Causal_events\\sina_economics_triple_extraction\\'+str(file))
 #               
             
     
