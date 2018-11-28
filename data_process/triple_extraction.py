@@ -213,31 +213,38 @@ class TripleExtractor:
         role_info = roles_dict[role_index]
         if 'A0' in role_info.keys() and 'A1' in role_info.keys():
             s = ''.join([words[word_index] for word_index in range(role_info['A0'][1], role_info['A0'][2]+1) if
-                         postags[word_index][0] not in ['w', 'u', 'x'] and words[word_index]])
+                         postags[word_index][0] not in ['w', 'u', 'x'  ] and words[word_index]])
             o = ''.join([words[word_index] for word_index in range(role_info['A1'][1], role_info['A1'][2]+1) if
                          postags[word_index][0] not in ['w', 'u', 'x'] and words[word_index]])
             if s  and o:
                 return '1', [s, v, o]
-        # elif 'A0' in role_info:
-        #     s = ''.join([words[word_index] for word_index in range(role_info['A0'][1], role_info['A0'][2] + 1) if
-        #                  postags[word_index][0] not in ['w', 'u', 'x']])
-        #     if s:
-        #         return '2', [s, v]
-        # elif 'A1' in role_info:
-        #     o = ''.join([words[word_index] for word_index in range(role_info['A1'][1], role_info['A1'][2]+1) if
-        #                  postags[word_index][0] not in ['w', 'u', 'x']])
-        #     return '3', [v, o]
+#         elif 'A0' in role_info:
+#             s = ''.join([words[word_index] for word_index in range(role_info['A0'][1], role_info['A0'][2] + 1) if
+#                          postags[word_index][0] not in ['w', 'u', 'x']])
+#             if s:
+#                 return '2', [s, v]
+        elif 'A1' in role_info:
+            o = ''.join([words[word_index] for word_index in range(role_info['A1'][1], role_info['A1'][2]+1) if
+                         postags[word_index][0] not in ['w', 'u', 'x']])
+            return '3', [v, o]
         return '4', []
 
     '''三元组抽取主函数'''
     def ruler2(self, words, postags, child_dict_list, arcs, roles_dict):
         svos = []
+        words1=[]
         for index in range(len(postags)):
             tmp = 1
             # 先借助语义角色标注的结果，进行三元组抽取
             if index in roles_dict:
                 flag, triple = self.ruler1(words, postags, roles_dict, index)
                 if flag == '1':
+                    svos.append(triple)
+                    tmp = 0
+#                 elif flag=='2':
+#                     svos.append(triple)
+#                     tmp = 0
+                elif flag=='3':
                     svos.append(triple)
                     tmp = 0
             if tmp == 1:
@@ -267,13 +274,17 @@ class TripleExtractor:
                             if temp_string not in e1:
                                 svos.append([e1, r, e2])
                     # 含有介宾关系的主谓动补关系
-                    if 'SBV' in child_dict and 'CMP' in child_dict:
+                    elif 'SBV' in child_dict and 'CMP' in child_dict:
                         e1 = self.complete_e(words, postags, child_dict_list, child_dict['SBV'][0])
                         cmp_index = child_dict['CMP'][0]
                         r = words[index] + words[cmp_index]
                         if 'POB' in child_dict_list[cmp_index]:
                             e2 = self.complete_e(words, postags, child_dict_list, child_dict_list[cmp_index]['POB'][0])
                             svos.append([e1, r, e2])
+                    elif postags[index] in ['n','nh','ni','nl','ns','nz','r','ws','j','c','v','i','p']:
+                        words1.append(words[index])
+            if words1!=None:
+                svos.append(words1)                                  
         return svos
 
     '''对找出的主语或者宾语进行扩展'''
@@ -345,33 +356,34 @@ if __name__ == '__main__':
 #         i+=1
 #         while(file=='税务文明的核心是依法治税(2002.10.25).txt.csv'):
 #             print(i)
-         pathname = os.path.join(path, file)
-         print(file)
+        pathname = os.path.join(path, file)
+        print(file)
         #准确获取一个txt的位置，利用字符串的拼接
-         txt_path = pathname
-         f = open(txt_path,'r',encoding='utf-8')
-         article_causality_sentence=pd.read_csv(f).drop_duplicates(subset=['原因','结果'])
-         #print(datas)
-         yuanyin=[]
-         jieguo=[]
-         for index,i in article_causality_sentence.iterrows():
-             svos=1
-             yuanyin_svos = extractor1.triples_main(i['原因'])#原因三元组对
-             tag=i['标签']#事件标签
-             jieguo_svos = extractor1.triples_main(i['结果'])#结果三元组对
-             if len(yuanyin_svos)==0:
-                 yuanyin_svos.append(i['原因'])
-                 svos=0
-             if len(jieguo_svos)==0:
-                 jieguo_svos.append(i['结果'])
-                 svos=0    
-             yuanyin.append(yuanyin_svos)
-             jieguo.append(jieguo_svos)             
-             collection.insert({'栏目':'50人经济论坛','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
-         article_causality_sentence['原因三元组']=yuanyin
-         article_causality_sentence['结果三元组']=jieguo
-         article_causality_sentence.to_csv('E:\\Causal_events\\sina_economics_triple_extraction\\'+str(file))
-#               
+        txt_path = pathname
+        f = open(txt_path,'r',encoding='utf-8')
+        article_causality_sentence=pd.read_csv(f).drop_duplicates(subset=['原因','结果'])
+        #print(datas)
+        yuanyin=[]
+        jieguo=[]
+        for index,i in article_causality_sentence.iterrows():
+            svos=1
+            yuanyin_svos = extractor1.triples_main(i['原因'])#原因三元组对
+            print(yuanyin_svos)
+            tag=i['标签']#事件标签
+            jieguo_svos = extractor1.triples_main(i['结果'])#结果三元组对
+            if len(yuanyin_svos)==0:
+                yuanyin_svos.append(i['原因'])
+                svos=0
+            if len(jieguo_svos)==0:
+                jieguo_svos.append(i['结果'])
+                svos=0    
+#             yuanyin.append(yuanyin_svos)
+#             jieguo.append(jieguo_svos)             
+#             collection.insert({'栏目':'50人经济论坛','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
+#         article_causality_sentence['原因三元组']=yuanyin
+#         article_causality_sentence['结果三元组']=jieguo
+#         article_causality_sentence.to_csv('E:\\Causal_events\\sina_economics_triple_extraction\\'+str(file))
+# #               
             
     
     
