@@ -217,16 +217,16 @@ class TripleExtractor:
             o = ''.join([words[word_index] for word_index in range(role_info['A1'][1], role_info['A1'][2]+1) if
                          postags[word_index][0] not in ['w', 'u', 'x'] and words[word_index]])
             if s  and o:
-                return '1', str(s+v+o)#[s, v, o]
-#         elif 'A0' in role_info:
-#             s = ''.join([words[word_index] for word_index in range(role_info['A0'][1], role_info['A0'][2] + 1) if
-#                          postags[word_index][0] not in ['w', 'u', 'x']])
-#             if s:
-#                 return '2', [s,v]
+                return '1', [s, v, o]#str(s+v+o)#
+        elif 'A0' in role_info:
+            s = ''.join([words[word_index] for word_index in range(role_info['A0'][1], role_info['A0'][2] + 1) if
+                         postags[word_index][0] not in ['w', 'u', 'x']])
+            if s:
+                return '2', [s,v]
         elif 'A1' in role_info:
             o = ''.join([words[word_index] for word_index in range(role_info['A1'][1], role_info['A1'][2]+1) if
                          postags[word_index][0] not in ['w', 'u', 'x']])
-            return '3', str(v+o)#[v,o]
+            return '3', [v,o]#str(v+o)#
         return '4', []
 
     '''三元组抽取主函数'''
@@ -258,7 +258,7 @@ class TripleExtractor:
                         r = words[index]
                         e1 = self.complete_e(words, postags, child_dict_list, child_dict['SBV'][0])
                         e2 = self.complete_e(words, postags, child_dict_list, child_dict['VOB'][0])
-                        svos.append(e1+r+e2)#[e1, r, e2]
+                        svos.append([e1, r, e2])#e1+r+e2)#
 
                     # 定语后置，动宾关系
                     relation = arcs[index][0]
@@ -272,7 +272,7 @@ class TripleExtractor:
                             if temp_string == e1[:len(temp_string)]:
                                 e1 = e1[len(temp_string):]
                             if temp_string not in e1:
-                                svos.append(e1+r+e2)#[e1, r, e2]
+                                svos.append([e1, r, e2])#e1+r+e2)#
                     # 含有介宾关系的主谓动补关系
                     if 'SBV' in child_dict and 'CMP' in child_dict:
                         e1 = self.complete_e(words, postags, child_dict_list, child_dict['SBV'][0])
@@ -280,7 +280,7 @@ class TripleExtractor:
                         r = words[index] + words[cmp_index]
                         if 'POB' in child_dict_list[cmp_index]:
                             e2 = self.complete_e(words, postags, child_dict_list, child_dict_list[cmp_index]['POB'][0])
-                            svos.append(e1+r+e2)#[e1, r, e2]                      
+                            svos.append([e1, r, e2])#e1+r+e2)#[e1, r, e2]                      
         return svos
 
     '''对找出的主语或者宾语进行扩展'''
@@ -297,7 +297,7 @@ class TripleExtractor:
             if 'SBV' in child_dict:
                 prefix = self.complete_e(words, postags, child_dict_list, child_dict['SBV'][0]) + prefix
 
-        return prefix + words[word_index] + postfix
+        return prefix +words[word_index] + postfix# 
 
     '''程序主控函数'''
     def triples_main(self, content):
@@ -367,7 +367,6 @@ if __name__ == '__main__':
         
             tag=i['标签']#事件标签
             jieguo_svos = extractor1.triples_main(i['结果'])#结果三元组对
-            
             if len(yuanyin_svos)==0:
                 yuanyin_svos.append(i['原因'])
                 svos=0
@@ -377,7 +376,7 @@ if __name__ == '__main__':
             yuanyin.append(yuanyin_svos)
             jieguo.append(jieguo_svos) 
             print('原因:'+str(yuanyin_svos)) 
-            print('结果:'+str(jieguo_svos))           
+            print('结果:'+str(jieguo_svos)) 
 #             collection.insert({'栏目':'sina财经评论','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
 #         article_causality_sentence['原因三元组']=str(yuanyin)
 #         article_causality_sentence['结果三元组']=str(jieguo)
