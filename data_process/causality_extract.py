@@ -96,10 +96,10 @@ class CausalityExractor():
         '''
         verb1:牵动、导向、使动、导致、勾起、指引、使、予以、产生、促成、造成、造就、促使、酿成、
             引发、渗透、促进、引起、诱导、引来、促发、引致、诱发、推进、诱致、推动、招致、影响、致使、滋生、归于、
-            作用、使得、决定、攸关、令人、引出、浸染、带来、挟带、触发、关系、渗入、诱惑、波及、诱使
+            作用、使得、决定、攸关、令人、引出、浸染、带来、挟带、触发、关系、渗入、诱惑、波及、诱使，满足
         verb1_model:{Cause},<Verb|Adverb...>{Effect}
         '''
-        pattern = re.compile(r'(.*)[,，]+.*(引导|牵动|已致|导向|使动|导致|勾起|使|予以|产生|促成|造成|造就|促使|酿成|引发|渗透|促进|引起|诱导|引来|促发|引致|诱发|诱致|推动|招致|影响|致使|滋生|归于|使得|攸关|令人|引出|浸染|带来|挟带|触发|关系|渗入|诱惑|波及|诱使)/[d|v]+\s(.*)')
+        pattern = re.compile(r'(.*)[,，]+.*(将会|标志着|满足|意味着|推进|引导|牵动|已致|导向|使动|导致|使|予以|产生|促成|造成|造就|促使|酿成|引发|渗透|促进|引起|诱导|引来|促发|引致|诱发|诱致|推动|招致|影响|致使|滋生|归于|使得|攸关|令人|引出|浸染|带来|挟带|触发|关系|渗入|诱惑|波及|诱使)/[d|v]+\s(.*)')
         result = pattern.findall(sentence)
         data = dict()
         if result:
@@ -196,14 +196,14 @@ class CausalityExractor():
             infos.append(self.ruler3(sentence))
         elif self.ruler4(sentence):
             infos.append(self.ruler4(sentence))
-#         elif self.ruler5(sentence):
-#             infos.append(self.ruler5(sentence))
-#         elif self.ruler6(sentence):
-#             infos.append(self.ruler6(sentence))
+        elif self.ruler5(sentence):
+            infos.append(self.ruler5(sentence))
+        elif self.ruler6(sentence):
+            infos.append(self.ruler6(sentence))
         elif self.ruler7(sentence):
             infos.append(self.ruler7(sentence))
-#         elif self.ruler8(sentence):
-#             infos.append(self.ruler8(sentence))
+        elif self.ruler8(sentence):
+            infos.append(self.ruler8(sentence))
         elif self.ruler9(sentence):
             infos.append(self.ruler9(sentence))
 
@@ -296,9 +296,9 @@ class CausalityExractor():
 if __name__ == '__main__':
     mongo_con=MongoClient('172.20.66.56', 27017)
     db=mongo_con.Causal_event
-    collection=db.sina_articles_causality_extract
+    collection=db.forum50_articles_causality_extract
     extractor = CausalityExractor()
-    path = r'E:\\Causal_events\\sina_economics_articles'
+    path = r'E:\\Causal_events\\forum50_articles'
     #sentence="我爱你,中国"
     files = os.listdir(path)
     for file in files :
@@ -307,25 +307,32 @@ if __name__ == '__main__':
         #准确获取一个txt的位置，利用字符串的拼接
         txt_path = pathname.encode('utf-8')
         #把结果保存了在contents中
-        with codecs.open(txt_path,'rb',encoding='utf-8') as f1:
-            lines = str(f1.readlines()).replace('[','').replace(']','')
-            line=lines.replace('阅读┊评论┊收藏┊转载┊喜欢▼┊打印┊举报','')
+        with codecs.open(txt_path,'r',encoding='utf8',errors='strict') as f1:
+            try:
+                lines = f1.readlines()
+            except UnicodeDecodeError:#含有gb2312编码
+                f1.encoding='gb2312'
+                lines =f1.readlines()
+            line = str([line.strip() for line in lines]).replace('[','').replace(']','').replace('\\u3000', '')
         datas = extractor.extract_main(line)
         biglist=[]
         for data in datas:
             cause=''.join([word.split('/')[0] for word in data['cause'].split(' ') if word.split('/')[0]])
             tag=data['tag']
             effect=''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]])
-#             collection.insert({'栏目':'sina财经经济评论','file':file.replace('.txt',''),'cause':cause,'tag':tag,'effect':effect})
-            print('tag', data['tag'])
-            print('effect', ''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]]))
-            print(cause,' '+tag+' ',effect)
-#             biglist.append(['sina财经经济评论',file.replace('.txt',''),cause,tag,effect])
-#         list2=[]#去重
-#         for i in biglist:
-#             if i not in list2:
-#                 list2.append(i)
-#         name=['栏目','文件名','原因','标签','结果']
-#         article_anaysis=pd.DataFrame(columns=name,data=list2)
-#         article_anaysis.to_csv('E:\\Causal_events\\sina_articles_causality_extract\\'+file.replace('.txt','.csv'),encoding='utf-8') 
+            if len(cause)>3 and len(effect)>3:
+                collection.insert({'栏目':'forum50财经经济评论','file':file.replace('.txt',''),'cause':cause,'tag':tag,'effect':effect})
+                print('tag', data['tag'])
+                print('effect', ''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]]))
+                print(cause,' '+tag+' ',effect)
+                biglist.append(['forum50财经经济评论',file.replace('.txt',''),cause,tag,effect])
+            else:
+                continue
+        list2=[]#去重
+        for i in biglist:
+            if i not in list2:
+                list2.append(i)
+        name=['栏目','文件名','原因','标签','结果']
+        article_anaysis=pd.DataFrame(columns=name,data=list2)
+        article_anaysis.to_csv('E:\\Causal_events\\forum50_articles_causality_extract\\'+file.replace('.txt','.csv'),encoding='utf-8') 
         
