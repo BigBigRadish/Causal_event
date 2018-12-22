@@ -6,48 +6,38 @@ Created on 2018年12月21日
 Jiangxi university of finance and economics
 '''
 import os
-import sys
-type = sys.getfilesystemencoding()
-from PyPDF2 import PdfFileReader, PdfFileWriter
-readFile = r'C:\Users\HP\git\Causal_event\data_process\宏观研究\2012年10月份CPI、PPI数据快评-需求端改善有限.pdf'
-fp = open(readFile,'rb')
-pdfFile = PdfFileReader(fp)
-if pdfFile.isEncrypted:
-    try:
-        pdfFile.decrypt('')
-        print('File Decrypted (PyPDF2)')
-    except:
-        command = str("cp "+ readFile +
-            " temp.pdf; qpdf --password='' --decrypt temp.pdf " + readFile+ "; rm temp.pdf")
-        os.system(command)
-        print('File Decrypted (qpdf)')
-        fp = open(readFile.encode(type))
-        pdfFile = pdfFile(fp)
-else:
-    print('File Not Encrypted')
-#dostuff with pdfFile here
-# 获取 PDF 文件的文档信息
-documentInfo = pdfFile.getDocumentInfo()
-print('documentInfo = %s' % documentInfo)
-# 获取页面布局
-pageLayout = pdfFile.getPageLayout()
-print('pageLayout = %s ' % pageLayout)
-
-# 获取页模式
-pageMode = pdfFile.getPageMode()
-print('pageMode = %s' % pageMode)
-
-xmpMetadata = pdfFile.getXmpMetadata()
-print('xmpMetadata  = %s ' % xmpMetadata)
-
-# 获取 pdf 文件页数
-pageCount = pdfFile.getNumPages()
-
-print('pageCount = %s' % pageCount)
-for index in range(0, pageCount):
-    # 返回指定页编号的 pageObject
-    pageObj = pdfFile.getPage(index)
-    print('index = %d , pageObj = %s' % (index, type(pageObj)))  # <class 'PyPDF2.pdf.PageObject'>
-    # 获取 pageObject 在 PDF 文档中处于的页码
-    pageNumber = pdfFile.getPageNumber(pageObj)
-    print('pageNumber = %s ' % pageNumber)
+import random
+from configparser import ConfigParser
+from io import StringIO
+from io import open
+from pdfminer.converter import PDFPageAggregator
+from pdfminer.layout import LTTextBoxHorizontal, LAParams
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfinterp import PDFTextExtractionNotAllowed
+from pdfminer.pdfparser import PDFParser, PDFDocument
+from pdfminer.pdfinterp import PDFTextExtractionNotAllowed
+''' 解析pdf 文本，保存到txt文件中'''
+def parse(path):    
+    fp = open(path, 'rb') # 以二进制读模式打开    #用文件对象来创建一个pdf文档分析器    
+    praser = PDFParser(fp)    # 创建一个PDF文档    
+    doc = PDFDocument()    # 连接分析器 与文档对象    
+    praser.set_document(doc)    
+    doc.set_parser(praser)    # 提供初始化密码    # 如果没有密码 就创建一个空的字符串    
+    doc.initialize()    # 检测文档是否提供txt转换，不提供就忽略    
+    if not doc.is_extractable:        
+        raise PDFTextExtractionNotAllowed    
+    else:        # 创建PDf 资源管理器 来管理共享资源       
+        rsrcmgr = PDFResourceManager()        # 创建一个PDF设备对象        
+        laparams = LAParams()        
+        device = PDFPageAggregator(rsrcmgr, laparams=laparams)        # 创建一个PDF解释器对象        
+        interpreter = PDFPageInterpreter(rsrcmgr, device)        # 循环遍历列表，每次处理一个page的内容        
+        for page in doc.get_pages(): # doc.get_pages() 获取page列表            
+            interpreter.process_page(page)            # 接受该页面的LTPage对象            
+            layout = device.get_result()            # 这里layout是一个LTPage对象 里面存放着 这个page解析出的各种对象 一般包括LTTextBox, LTFigure, LTImage, LTTextBoxHorizontal 等等 想要获取文本就获得对象的text属性，            
+            for x in layout:                
+                if (isinstance(x, LTTextBoxHorizontal)):                    #需要写出编码格式                                           
+                    results = x.get_text()                        
+                    print(results.strip())                        
+if __name__ == '__main__':    
+    url = r"./宏观研究/2012年10月外汇占款预测报告--预计10月新增外汇占款继续上升.pdf"
+    parse(url)
