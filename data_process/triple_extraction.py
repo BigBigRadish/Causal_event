@@ -217,7 +217,7 @@ class TripleExtractor:
             o = ''.join([words[word_index] for word_index in range(role_info['A1'][1], role_info['A1'][2]+1) if
                          postags[word_index][0] not in ['w', 'u', 'x'] and words[word_index]])
             if s  and o:
-                return '1', [s, v, o]#str(s+v+o)#
+                return '1', str(s+v+o)#[s, v, o]#
         elif 'A0' in role_info:
             s = ''.join([words[word_index] for word_index in range(role_info['A0'][1], role_info['A0'][2] + 1) if
                          postags[word_index][0] not in ['w', 'u', 'x']])
@@ -226,7 +226,7 @@ class TripleExtractor:
         elif 'A1' in role_info:
             o = ''.join([words[word_index] for word_index in range(role_info['A1'][1], role_info['A1'][2]+1) if
                          postags[word_index][0] not in ['w', 'u', 'x']])
-            return '3', [v,o]#str(v+o)#
+            return '3', str(v+o)#[v,o]
         return '4', []
 
     '''三元组抽取主函数'''
@@ -258,7 +258,7 @@ class TripleExtractor:
                         r = words[index]
                         e1 = self.complete_e(words, postags, child_dict_list, child_dict['SBV'][0])
                         e2 = self.complete_e(words, postags, child_dict_list, child_dict['VOB'][0])
-                        svos.append([e1, r, e2])#e1+r+e2)#
+                        svos.append(e1+r+e2)#e1+r+e2)#[e1, r, e2]
 
                     # 定语后置，动宾关系
                     relation = arcs[index][0]
@@ -272,7 +272,7 @@ class TripleExtractor:
                             if temp_string == e1[:len(temp_string)]:
                                 e1 = e1[len(temp_string):]
                             if temp_string not in e1:
-                                svos.append([e1, r, e2])#e1+r+e2)#
+                                svos.append(e1+r+e2)#)#[e1, r, e2]
                     # 含有介宾关系的主谓动补关系
                     if 'SBV' in child_dict and 'CMP' in child_dict:
                         e1 = self.complete_e(words, postags, child_dict_list, child_dict['SBV'][0])
@@ -280,7 +280,7 @@ class TripleExtractor:
                         r = words[index] + words[cmp_index]
                         if 'POB' in child_dict_list[cmp_index]:
                             e2 = self.complete_e(words, postags, child_dict_list, child_dict_list[cmp_index]['POB'][0])
-                            svos.append([e1, r, e2])#e1+r+e2)#[e1, r, e2]                      
+                            svos.append(e1+r+e2)#e1+r+e2)#[e1, r, e2]                      
         return svos
 
     '''对找出的主语或者宾语进行扩展'''
@@ -303,14 +303,15 @@ class TripleExtractor:
     def triples_main(self, content):
         sentences = self.split_sents(content)
         svos = []
-        svos_string=[]
+        svos1=[]
+        svos_string=''
         for sentence in sentences:
             words, postags, child_dict_list, roles_dict, arcs = self.parser.parser_main(sentence)
             svo = self.ruler2(words, postags, child_dict_list, arcs, roles_dict)
+            print(svo)
             if str(svo) not in svos_string:
                 svos += svo
-                svos_string+=str(svo)
-
+                svos_string+=str(svo)           
         return svos
 
 
@@ -372,11 +373,26 @@ if __name__ == '__main__':
                 svos=0
             if len(jieguo_svos)==0:
                 jieguo_svos.append(i['结果'])
-                svos=0    
-            yuanyin.append(yuanyin_svos)
+                svos=0
+            yuanyin_svos_sj=[]
+            jieguo_svos_sj=[]
+            for i in range(len(yuanyin_svos)):
+                yuanyin_svos1=yuanyin_svos
+                print(yuanyin_svos1)
+                yuanyin_svos1.pop(i)
+                if yuanyin_svos[i] not in str(yuanyin_svos1):
+                    yuanyin_svos[i].replace('\\xa0','').replace('\\','')
+                    if len(yuanyin_svos[i])>=4:
+                        yuanyin_svos_sj.append(i)
+            yuanyin.append(yuanyin_svos_sj)
+            for j in jieguo_svos:
+                if j not in str(jieguo_svos).replace(j,''):
+                    if len(j)>=4:
+                        jieguo_svos_sj.append(j)
             jieguo.append(jieguo_svos) 
-            print('原因:'+str(yuanyin_svos)) 
-            print('结果:'+str(jieguo_svos)) 
+            print('原因:'+str(yuanyin_svos_sj)) 
+            print('结果:'+str(jieguo_svos_sj))
+            
 #             collection.insert({'栏目':'sina财经评论','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
 #         article_causality_sentence['原因三元组']=str(yuanyin)
 #         article_causality_sentence['结果三元组']=str(jieguo)
