@@ -308,7 +308,7 @@ class TripleExtractor:
         for sentence in sentences:
             words, postags, child_dict_list, roles_dict, arcs = self.parser.parser_main(sentence)
             svo = self.ruler2(words, postags, child_dict_list, arcs, roles_dict)
-            print(svo)
+#             print(svo)
             if str(svo) not in svos_string:
                 svos += svo
                 svos_string+=str(svo)           
@@ -343,9 +343,9 @@ if __name__ == '__main__':
     extractor1 = TripleExtractor()
     mongo_con=MongoClient('172.20.66.56', 27017)
     db=mongo_con.Causal_event
-    collection=db.triple_extraction_1
+    collection=db.sj_extraction
     #extractor = CausalitySentencesExractor()
-    path = r'E:\\Causal_events\\sina_articles_causality_extract'
+    path = r'E:\\Causal_events\\forum50_articles_causality_extract'
     #sentence="我爱你,中国"
     files = os.listdir(path)
 #     i=1251
@@ -362,11 +362,13 @@ if __name__ == '__main__':
         #print(datas)
         yuanyin=[]
         jieguo=[]
+        tag1=[]
         for index,i in article_causality_sentence.iterrows():
             svos=1
             yuanyin_svos = extractor1.triples_main(i['原因'])#原因三元组对
         
             tag=i['标签']#事件标签
+            tag1.append(tag)
             jieguo_svos = extractor1.triples_main(i['结果'])#结果三元组对
             if len(yuanyin_svos)==0:
                 yuanyin_svos.append(i['原因'])
@@ -374,31 +376,42 @@ if __name__ == '__main__':
             if len(jieguo_svos)==0:
                 jieguo_svos.append(i['结果'])
                 svos=0
+            '''
+            事件提取并去重
+            '''
             yuanyin_svos_sj=[]
             jieguo_svos_sj=[]
-            for i in range(len(yuanyin_svos)):
-                yuanyin_svos1=yuanyin_svos
-                print(yuanyin_svos1)
-                yuanyin_svos1.pop(i)
-                if yuanyin_svos[i] not in str(yuanyin_svos1):
-                    yuanyin_svos[i].replace('\\xa0','').replace('\\','')
-                    if len(yuanyin_svos[i])>=4:
-                        yuanyin_svos_sj.append(i)
-            yuanyin.append(yuanyin_svos_sj)
+            print(yuanyin_svos)
+            for k in yuanyin_svos:
+                yuanyin_svos1=[]
+                yuanyin_svos1+=yuanyin_svos
+#                 print('....:',yuanyin_svos1)
+                yuanyin_svos1.remove(k)
+                if str(k) not in str(yuanyin_svos1).replace("'", ''):
+                    if len(str(k))>=4:
+                        yuanyin_svos_sj.append(k)
+            yuanyin_svos_sj1=str(yuanyin_svos_sj).replace('[','').replace(']','').replace("'", '').replace("\xa0", '')
+            yuanyin.append(yuanyin_svos_sj1)
             for j in jieguo_svos:
-                if j not in str(jieguo_svos).replace(j,''):
-                    if len(j)>=4:
+                jieguo_svos1=[]
+                jieguo_svos1+=jieguo_svos
+                jieguo_svos1.remove(j)
+                print(j)
+                if str(j) not in str(jieguo_svos1).replace("'", ''):
+                    if len(str(j))>=4:
                         jieguo_svos_sj.append(j)
-            jieguo.append(jieguo_svos) 
-            print('原因:'+str(yuanyin_svos_sj)) 
-            print('结果:'+str(jieguo_svos_sj))
-            
-#             collection.insert({'栏目':'sina财经评论','文件名':i['文件名'],'原因三元组':yuanyin_svos,'结果三元组':jieguo_svos,'标签':tag,'svos':svos})
-#         article_causality_sentence['原因三元组']=str(yuanyin)
-#         article_causality_sentence['结果三元组']=str(jieguo)
-#         article_causality_sentence.to_csv('E:\\Causal_events\\sina_economics_triple_extraction\\'+str(file))
-#         article_causality_sentence.to_csv('E:\\Causal_events\\sina_economics_triple_extraction\\sina_economics_triple_extraction.csv','a')
-#               
+            jieguo_svos_sj1=str(jieguo_svos_sj).replace('[','').replace(']','').replace("'", '').replace("\xa0", '')
+            jieguo.append(jieguo_svos_sj1) 
+            print('原因:'+yuanyin_svos_sj1) 
+            print('结果:'+jieguo_svos_sj1)
+            if yuanyin_svos_sj1 and jieguo_svos_sj1:
+                        collection.insert({'栏目':'50人论坛财经评论','文件名':i['文件名'],'原因事件':yuanyin_svos_sj1,'结果事件':jieguo_svos_sj1,'标签':tag,'svos':svos})
+        article_causality_sentence['原因事件']=yuanyin
+        article_causality_sentence['结果事件']=jieguo
+        article_causality_sentence['标签']=tag1
+        article_causality_sentence.to_csv('E:\\Causal_events\\forum50_articles_sj_extract\\'+str(file))
+#         article_causality_sentence.to_csv('E:\\Causal_events\\sina_economics_sj_extraction.csv',mode='a')
+               
             
     
     
