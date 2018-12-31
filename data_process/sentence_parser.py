@@ -10,6 +10,7 @@ from pyltp import Segmentor, Postagger, Parser, NamedEntityRecognizer, SementicR
 from pyltp import SentenceSplitter
 import json
 import codecs
+import pandas as pd
 from pymongo import MongoClient
 from _collections import defaultdict
 from bson import json_util
@@ -74,11 +75,11 @@ class LtpParser:
     def parser_main(self, sentence):
         words = list(self.segmentor.segment(sentence))
         postags = list(self.postagger.postag(words))
-        arcs = self.parser.parse(words, postags)
-        child_dict_list, format_parse_list = self.build_parse_child_dict(words, postags, arcs)
-        roles_dict = self.format_labelrole(words, postags)
-        return words, postags, child_dict_list, roles_dict, format_parse_list
-    def sentence_splitter(self,sentence='你好，你觉得这个例子从哪里来的？当然还是直接复制官方文档，然后改了下这里得到的。我的微博是MebiuW，转载请注明来自MebiuW！'):
+#         arcs = self.parser.parse(words, postags)
+#         child_dict_list, format_parse_list = self.build_parse_child_dict(words, postags, arcs)
+#         roles_dict = self.format_labelrole(words, postags)
+        return words, postags#, child_dict_list, roles_dict, format_parse_list
+    def sentence_splitter(self,sentence='你好，你觉得这个例子从哪里来的？当然还是直接复制官方文档'):
         sents = SentenceSplitter.split(sentence) # 分句
         return (list(sents))
         
@@ -87,9 +88,9 @@ class LtpParser:
 if __name__ == '__main__':
     mongo_con=MongoClient('172.20.66.56', 27017)
     db=mongo_con.Causal_event
-    collection=db.forum50_articles_word
+    collection=db.forum50_articles_anaysis
     parse = LtpParser()
-    path = r'E:\\Causal_events\\forum50_articles'
+    path = r'E:\\Causal_events\\sina_articles_causality_extract\\'
     #sentence="我爱你,中国"
     files = os.listdir(path)
     #print(files)
@@ -97,22 +98,23 @@ if __name__ == '__main__':
         pathname = os.path.join(path, file)
         print(file)
         #准确获取一个txt的位置，利用字符串的拼接
-        txt_path = pathname.encode('utf-8')
+        txt_path = pathname
         #把结果保存了在contents中
-        with codecs.open(txt_path,'rb',encoding='utf-8') as f1:
-            lines = f1.readlines()
-        for line in lines:
-            line+=line   
-        article_len=len(line)
-        sentences=parse.sentence_splitter(sentence=line)
-        dict1={}
-        n=1
-        for i in sentences:  
-            words = parse.segmentor.segment(i)
-            words=list(words)
-            dict1[str(n)]={"句子长度":str(len(words)),"分词结果":words}
-        article_word={"文章标题":str(file),"文章长度":str(article_len),"文章分词结果":dict1}
-        collection.insert(article_word)
-        with open('E:\\Causal_events\\forum50_articles_anaysis\\'+file.replace('.txt','.json'), 'w',encoding='utf-8') as file_obj:
-            '''写入json文件'''
-            json.dump(json_util.dumps(article_word),file_obj)    
+        causality_extract=pd.read_csv(open(txt_path,'rb'))
+        causality_extract=causality_extract.drop_duplicates(subset=['原因','结果'])
+        biglist=[]
+        for index,i in causality_extract.iterrows():
+            yuanyin=i['原因'].replace('‘','，')
+            jieguo=i['结果'].replace('‘','，') 
+            tag=i['标签'] 
+            word_yuanyin, postag_yuanyin= parse.parser_main(yuanyin)
+            print(word_yuanyin,postag_yuanyin)
+            word_jieguo, postag_jieguo= parse.parser_main(jieguo)
+            list1=['sina经济论坛',file,yuanyin,str(word_yuanyin).replace('[','').replace(']',''), str(postag_yuanyin).replace(',', '').replace('[','').replace("'", '').replace(']','').strip(),jieguo,str(word_jieguo).replace('[','').replace(']',''), str(postag_jieguo).replace(',', '').replace('[','').replace("'", '').replace(']','').strip(),tag]
+            biglist.append(list1)                                                                                                                                                                                                                                                                                                
+        name=['栏目','文件名','原因句','原因句分词结果','原因句词性标注','结果句','结果句分词结果','结果句词性标注','标签']
+        article_anaysis=pd.DataFrame(columns=name,data=biglist)
+        if(article_anaysis.size>0):
+            collection.insert(json.loads(article_anaysis.T.to_json()).values())
+            article_anaysis.to_csv('E:\\Causal_events\\sina_articles_anaysis\\'+file,encoding='utf-8') 
+    mongo_con.close() 
