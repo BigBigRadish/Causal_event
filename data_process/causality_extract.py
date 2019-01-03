@@ -101,7 +101,8 @@ class CausalityExractor():
         '''
         pattern = re.compile(r'(.*)[,，]+.*(将会|标志着|满足|意味着|推进|引导|牵动|已致|导向|使动|导致|使|予以|产生|促成|造成|造就|促使|酿成|引发|渗透|促进|引起|诱导|引来|促发|引致|诱发|诱致|推动|招致|影响|致使|滋生|归于|使得|攸关|令人|引出|浸染|带来|挟带|触发|关系|渗入|诱惑|波及|诱使)/[d|v]+\s(.*)')
         result = pattern.findall(sentence)
-        data = dict()
+        data = dict() 
+        
         if result:
             data['tag'] = result[0][1]
             data['cause'] = result[0][0]
@@ -217,13 +218,14 @@ class CausalityExractor():
         for sentence in sentences:
             subsents = self.fined_sentence(sentence)
             subsents1+=subsents
-        print(subsents1)
+#         print(subsents1)
         for sent in subsents1:
-            sent = ' '.join([word.word + '/' + word.flag for word in pseg.cut(sent)])
-            result = self.extract_triples(sent)
+            sent1 = ' '.join([word.word + '/' + word.flag for word in pseg.cut(sent)])
+            result = self.extract_triples(sent1)
             if result:
                 for data in result:
                     if data['tag'] and data['cause'] and data['effect']:
+                        data['原句']=sent
                         datas.append(data)
         return datas
 
@@ -296,7 +298,7 @@ class CausalityExractor():
 if __name__ == '__main__':
     mongo_con=MongoClient('172.20.66.56', 27017)
     db=mongo_con.Causal_event
-    collection=db.forum50_articles_causality_extract
+    collection=db.forum50_articles_causality_extract_1
     extractor = CausalityExractor()
     path = r'E:\\Causal_events\\forum50_articles'
     #sentence="我爱你,中国"
@@ -320,19 +322,21 @@ if __name__ == '__main__':
             cause=''.join([word.split('/')[0] for word in data['cause'].split(' ') if word.split('/')[0]])
             tag=data['tag']
             effect=''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]])
+            yuanju=data['原句']
             if len(cause)>3 and len(effect)>3:
-                collection.insert({'栏目':'forum50财经经济评论','file':file.replace('.txt',''),'cause':cause,'tag':tag,'effect':effect})
+                collection.insert({'栏目':'forum50财经经济评论','file':file.replace('.txt',''),'原句':yuanju,'cause':cause,'tag':tag,'effect':effect})
+                print(yuanju)
                 print('tag', data['tag'])
                 print('effect', ''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]]))
-                print(cause,' '+tag+' ',effect)
-                biglist.append(['forum50财经经济评论',file.replace('.txt',''),cause,tag,effect])
+                print('cause:'+cause)
+#                 biglist.append(['forum50财经经济评论',file.replace('.txt',''),cause,tag,effect])
             else:
                 continue
-        list2=[]#去重
-        for i in biglist:
-            if i not in list2:
-                list2.append(i)
-        name=['栏目','文件名','原因','标签','结果']
-        article_anaysis=pd.DataFrame(columns=name,data=list2)
-        article_anaysis.to_csv('E:\\Causal_events\\forum50_articles_causality_extract\\'+file.replace('.txt','.csv'),encoding='utf-8') 
+#         list2=[]#去重
+#         for i in biglist:
+#             if i not in list2:
+#                 list2.append(i)
+#         name=['栏目','文件名','原因','标签','结果']
+#         article_anaysis=pd.DataFrame(columns=name,data=list2)
+#         article_anaysis.to_csv('E:\\Causal_events\\forum50_articles_causality_extract\\'+file.replace('.txt','.csv'),encoding='utf-8') 
         
