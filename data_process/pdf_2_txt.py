@@ -5,39 +5,43 @@ Created on 2018年12月21日
 @author: Zhukun Luo
 Jiangxi university of finance and economics
 '''
-import os
-import random
-from configparser import ConfigParser
-from io import StringIO
-from io import open
-from pdfminer.converter import PDFPageAggregator
-from pdfminer.layout import LTTextBoxHorizontal, LAParams
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfinterp import PDFTextExtractionNotAllowed
-from pdfminer.pdfparser import PDFParser, PDFDocument
-from pdfminer.pdfinterp import PDFTextExtractionNotAllowed
-''' 解析pdf 文本，保存到txt文件中'''
-def parse(path):    
-    fp = open(path, 'rb') # 以二进制读模式打开    #用文件对象来创建一个pdf文档分析器    
-    praser = PDFParser(fp)    # 创建一个PDF文档    
-    doc = PDFDocument()    # 连接分析器 与文档对象    
-    praser.set_document(doc)    
-    doc.set_parser(praser)    # 提供初始化密码    # 如果没有密码 就创建一个空的字符串    
-    doc.initialize()    # 检测文档是否提供txt转换，不提供就忽略    
-    if not doc.is_extractable:        
-        raise PDFTextExtractionNotAllowed    
-    else:        # 创建PDf 资源管理器 来管理共享资源       
-        rsrcmgr = PDFResourceManager()        # 创建一个PDF设备对象        
-        laparams = LAParams()        
-        device = PDFPageAggregator(rsrcmgr, laparams=laparams)        # 创建一个PDF解释器对象        
-        interpreter = PDFPageInterpreter(rsrcmgr, device)        # 循环遍历列表，每次处理一个page的内容        
-        for page in doc.get_pages(): # doc.get_pages() 获取page列表            
-            interpreter.process_page(page)            # 接受该页面的LTPage对象            
-            layout = device.get_result()            # 这里layout是一个LTPage对象 里面存放着 这个page解析出的各种对象 一般包括LTTextBox, LTFigure, LTImage, LTTextBoxHorizontal 等等 想要获取文本就获得对象的text属性，            
-            for x in layout:                
-                if (isinstance(x, LTTextBoxHorizontal)):                    #需要写出编码格式                                           
-                    results = x.get_text()                        
-                    print(results.strip())                        
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfpage import PDFPage
+from io import StringIO
+
+def convert_pdf_to_txt(path,save_name):#读取成txt格式
+    rsrcmgr = PDFResourceManager()
+    retstr = StringIO()
+    codec = 'utf-8'
+    laparams = LAParams()
+    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
+    fp = open(path, 'rb')
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    password = ""
+    maxpages = 0
+    caching = True
+    pagenos=set()
+    for page in PDFPage.get_pages(fp, pagenos, maxpages=maxpages, password=password,caching=caching, check_extractable=True):
+        interpreter.process_page(page)
+    fp.close()
+    device.close()
+    str = retstr.getvalue()
+    retstr.close()
+    try:
+        with open("%s"%save_name,"w") as f:#格式化字符串还能这么用！
+            for i in str:
+                f.write(i)
+        print ("%s Writing Succeed!"%save_name)
+    except:
+        print ("Writing Failed!")
+
+
+convert_pdf_to_txt(r"output.pdf","c.txt")               
 if __name__ == '__main__':    
-    url = r"./宏观研究/2012年10月外汇占款预测报告--预计10月新增外汇占款继续上升.pdf"
-    parse(url)
+    url = r"./macro_Research/2012年10月份CPI、PPI数据快评-需求端改善有限1.pdf"
+import pikepdf
+pdf = pikepdf.open(r"./宏观研究/2012年10月份CPI、PPI数据快评-需求端改善有限1.pdf")#奖pdf重新存储，可以读取
+pdf.save('output.pdf')
+print(pdf)
