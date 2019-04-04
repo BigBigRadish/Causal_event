@@ -10,6 +10,8 @@ from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import StringIO
+import os
+import pikepdf
 
 def convert_pdf_to_txt(path,save_name):#读取成txt格式
     rsrcmgr = PDFResourceManager()
@@ -38,10 +40,18 @@ def convert_pdf_to_txt(path,save_name):#读取成txt格式
         print ("Writing Failed!")
 
 
-convert_pdf_to_txt(r"output.pdf","c.txt")               
-if __name__ == '__main__':    
-    url = r"./macro_Research/2012年10月份CPI、PPI数据快评-需求端改善有限1.pdf"
-import pikepdf
-pdf = pikepdf.open(r"./宏观研究/2012年10月份CPI、PPI数据快评-需求端改善有限1.pdf")#奖pdf重新存储，可以读取
-pdf.save('output.pdf')
-print(pdf)
+               
+if __name__ == '__main__': 
+    raw_file_dirs=['行业研究','宏观研究','策略研究','公司研究']
+    for i in raw_file_dirs:
+        rootdir = 'C:/Users/HP/git/Causal_event/pdf_data/raw_data/'+i
+        files = os.listdir(rootdir) #列出文件夹下所有的目录与文件
+        for i in range(0,len(list)):
+            path = os.path.join(rootdir,files[i])
+            if os.path.isfile(path):
+                pdf = pikepdf.open(path)#奖pdf重新存储，可以读取
+                pdf.save('C:/Users/HP/git/Causal_event/pdf_data/copy_of_data/'+i+'/'+files[i])#重新存储解密 
+#     url = r"./macro_Research/2012年10月份CPI、PPI数据快评-需求端改善有限1.pdf"
+                convert_pdf_to_txt(path,('C:/Users/HP/git/Causal_event/pdf_data/copy_of_data/'+i+'/'+files[i]).replace('pdf','txt'))#转换成txt文件
+
+
