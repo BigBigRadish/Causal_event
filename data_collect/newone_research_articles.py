@@ -125,7 +125,7 @@ if __name__ == '__main__':
     time.sleep(30)#设置一下，自动保存文件
     imgElement = driver.find_element_by_id('codeimg')#获取图片元素
     authCodeText = get_auth_code(driver,imgElement)
-    newone_login(driver,'1808494215','681218',authCodeText)
+    newone_login(driver,'1808494215','147258',authCodeText)
     article_lanmu=['宏观研究','策略研究','行业研究','招商视点','公司研究']
     for lanmu in article_lanmu:
         crawl_articles_detail(driver,collection,lanmu)
