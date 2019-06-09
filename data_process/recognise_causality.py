@@ -8,9 +8,11 @@ Jiangxi university of finance and economics
 import re
 import jieba.posseg as pseg
 from pyltp import SentenceSplitter
+from sentence_parser import LtpParser
 import os
 from pymongo import MongoClient
 import codecs
+import threading
 import pandas as pd
 class CausalityExractor():
     def __init__(self):
@@ -22,18 +24,18 @@ class CausalityExractor():
         conm2:〈[之]所以,因为〉、〈[之]所以,由于〉、 <[之]所以,缘于〉
         conm2_model:<Conj>{Effect},<Conj>{Cause}
         '''
+        a=[[],0]
         datas = list()
         word_pairs =[['之?所以', '因为'], ['之?所以', '由于'], ['之?所以', '缘于']]
         for word in word_pairs:
             pattern = re.compile(r'\s?(%s)/[p|c]+\s(.*)(%s)/[p|c]+\s(.*)' % (word[0], word[1]))#将句子中的词和词性进行了拼接
 #             print(sentence)
-            result = pattern.findall(sentence)
+            result1 = pattern.findall(sentence)
             data = dict()
-            if result:
-                return [word,1]
+            if result1:
+                a=[word,1]
                 break
-            else:
-                return [[],0]
+        return a
             
 
     def ruler10(self, sentence): 
@@ -42,16 +44,18 @@ class CausalityExractor():
         conm2_model:<Conj>{Effect},<Conj>{Cause}
         '''
         datas = list()
-        word_pairs =[['起','的作用'], ['是','的原因'],['是','的目的']]
+        word_pairs =[['起','作用'], ['是','原因'],['是','目的']]
+        a=[[],0]
         for word in word_pairs:
-            pattern = re.compile(r'(.*)(%s)(.*)(%s)/[n]+\s(.*)' % (word[0],word[1]))#将句子中的词和词性进行了拼接
+            pattern = re.compile(r'(%s)/[v]+\s(.*)(%s)/[n]+\s(.*)' % (word[0],word[1]))#将句子中的词和词性进行了拼接
 #             print(sentence)
+            
             result = pattern.findall(sentence)
             if result:
-                return [word,1]
+#                 print(sentence)
+                a=[word,1]
                 break
-            else:
-                return [[],0]
+        return a
     '''2由因到果配套式'''
     def ruler2(self,sentence):
         '''
@@ -66,33 +70,33 @@ class CausalityExractor():
                     ['因为', '为此'], ['由于', '为此'], ['除非', '才'],
                     ['只有', '才'], ['由于', '以至于?'], ['既然?', '却'],
                     ['如果', '那么'], ['如果', '则'], ['由于', '从而'],
-                    ['既然?', '就'], ['既然?', '因此'], ['如果', '就'],
+                    ['既然', '就?'], ['既然?', '因此'], ['如果', '就'],
                     ['只要', '就'], ['因为', '所以'], ['由于', '于是'],
                     ['因为', '因此'], ['由于', '故'], ['因为', '以致于?'],
                     ['因为', '以致'], ['因为', '因而'], ['由于', '因此'],
                     ['因为', '于是'], ['由于', '致使'], ['因为', '致使'],
                     ['由于', '以致于?'], ['因为', '故'], ['因为?', '以至于?'],
                     ['由于', '所以'], ['因为', '故而'], ['由于', '因而'],['因为','所以']]
-
+        a=[[],0]
         for word in word_pairs:
-            pattern = re.compile(r'\s?(%s)/[p|c]+\s(.*)(%s)/[p|c]+\s(.*)' % (word[0], word[1]))
+            pattern = re.compile(r'\s?(%s)/[p|c]+\s(.*)(%s)/[p|c|d]+\s(.*)' % (word[0], word[1]))
 #             print(pattern)
-            result = pattern.findall(sentence)
+#             print(sentence)
+            result1 = pattern.findall(sentence)
 #             print(result)
             data = dict()
-            if result:
-                return [word,1]
+            if result1:
+                a=[word,1]
                 break
-            else:
-                return [[],0]
+        return a
                
     '''3由因到果居中式明确'''
     def ruler3(self, sentence):
         '''
-        cons2:于是、所以、故、致使、以致[于]、因此、以至[于]、从而、因而
+        cons2:于是、所以、故、致使、以致[于]、因此、以至[于]、从而、因而、是因为
         cons2_model:{Cause},<Conj...>{Effect}
         '''
-
+#         print(sentence)
         pattern1 = re.compile(r'(.*)[,，]+.*(于是|所以|故|致使|以致于?|因此|以至于?|从而|因而)/[p|c]+\s(.*)')
         result1 = pattern1.findall(sentence)
         data = dict()
@@ -109,7 +113,7 @@ class CausalityExractor():
             作用、使得、决定、攸关、令人、引出、浸染、带来、挟带、触发、关系、渗入、诱惑、波及、诱使，满足
         verb1_model:{Cause},<Verb|Adverb...>{Effect}
         '''
-        pattern = re.compile(r'.*[,|，](.*)(导致|将会|标志着|满足|意味着|推进|引导|牵动|已致|导向|使动|导致|使|予以|产生|促成|造成|造就|促使|酿成|引发|渗透|促进|引起|诱导|引来|促发|引致|诱发|诱致|推动|招致|影响|致使|滋生|归于|使得|攸关|令人|引出|浸染|带来|挟带|触发|关系|渗入|诱惑|波及|诱使)/[d|v]+\s(.*)')
+        pattern = re.compile(r'.*[,|，](.*)(预示着|促进|导致|将会|标志着|满足|意味着|推进|引导|牵动|已致|导向|使动|导致|使|予以|产生|促成|造成|造就|促使|酿成|引发|渗透|促进|引起|诱导|引来|促发|引致|诱发|诱致|推动|招致|影响|致使|滋生|归于|使得|攸关|令人|引出|浸染|带来|挟带|触发|关系|渗入|诱惑|波及|诱使)/[d|v]+\s(.*)')
         result = pattern.findall(sentence)
         data = dict() 
         
@@ -151,7 +155,7 @@ class CausalityExractor():
         cons1:既[然]、因[为]、如果、由于、只要
         cons1_model:<Conj...>{Cause},{Effect}
         '''
-        pattern = re.compile(r'\s?(因|因为|如果|由于|只要)/[p|c]+\s(.*)[,，]+(.*)')
+        pattern = re.compile(r'\s?(因|因为|如果|由于|只要)/[p|c]+\s(.*)+(.*)')
         result = pattern.findall(sentence)
         data = dict()
         if result:
@@ -212,26 +216,32 @@ class CausalityExractor():
         elif self.ruler10(sentence)[1]:
             infos.append(self.ruler10(sentence)[0])
         else:
-            return [[],0]
+            return[[],0]
         return [infos,1]
 
     '''抽取主控函数'''
     def extract_main(self, content):
-        sentences = self.process_content(content)
-        datas = list()
-        subsents1=[]
-        for sentence in sentences:
-            subsents = self.fined_sentence(sentence)
-            subsents1+=subsents
-#         print(subsents1)
-        for sent in subsents1:
+    
+        for sent in set(content):
             sent1 = ' '.join([word.word + '/' + word.flag for word in pseg.cut(sent)])
 #             print(sent1)
             result = self.recognise_causality(sent1)
+#             print(sent)
 #             print(result)
 #             print(result)
             if result[1]:
-                print(sent,result[0])
+                mu = threading.Lock()
+                with codecs.open('../data/causality_sentences.txt','a',encoding='utf-8') as f:
+                    if  mu.acquire(True): #确保文件写入成功
+                        f.write(sent.replace('\n','')+'  '+str(result[0]).replace('[','').replace(']','')+'\n')
+                        f.flush()
+                        os.fsync(f)
+                        f.close()
+                        mu.release()
+#                 return (sent,result[0])
+            else:
+                with codecs.open('../data/other_sentences.txt','a',encoding='utf-8') as f2:
+                    f2.write(sent) 
 #         return datas
 
     '''文章分句处理'''
@@ -277,6 +287,8 @@ def test():
      既然别人不尊重你，就不要尊重别人。 因果复句造句
      既然题目难做，就不要用太多的时间去想，问一问他人也许会更好。
      既然我们是学生，就要遵守学生的基本规范。
+深化体制改革，推进经济增长。
+  活着是吃饭的重要原因。
      '''
     extractor = CausalityExractor()
 #      path = r'E:\\Causal_events\\forum50_articles'
@@ -299,8 +311,13 @@ def test():
 #         print('cause', ''.join([word.split('/')[0] for word in data['cause'].split(' ') if word.split('/')[0]]))
 #         print('tag', data['tag'])
 #         print('effect', ''.join([word.split('/')[0] for word in data['effect'].split(' ') if word.split('/')[0]]))
-test()
-# if __name__ == '__main__':
+# test()
+if __name__ == '__main__':
+    extractor = CausalityExractor()
+    with codecs.open('E:\Causal_events\sina_economics_newline\sina_text_line.txt','r',encoding='utf-8') as f1:
+        context=f1.readlines()
+    extractor.extract_main(context)
+    
 #     mongo_con=MongoClient('172.20.69.233', 27017)
 #     db=mongo_con.Causal_event
 #     collection=db.forum50_articles_causality_extract_1
