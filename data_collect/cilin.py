@@ -25,7 +25,7 @@ if __name__ == "__main__":
     #         json.dump(total_dict,fw,ensure_ascii=False)
     with open('./cilin.json','r',encoding='utf-8') as fr:
         a=json.load(fr)
-    print(a['有名'])
+    print(a['我'])
      
 
     
