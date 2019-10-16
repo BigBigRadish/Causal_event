@@ -24,8 +24,10 @@ parser = Parser()
 parser.load(os.path.join(LTP_DIR, "parser.model"))# 依存句法分析模型路径，模型名称为`parser.model
 def postag_list(file,n_postags,line_total):
     with codecs.open(file,'r',encoding='utf-8') as f:
-            lines = [line.strip() for line in f]
+            lines = [line.split(' ')[0].strip() for line in f]
     for line in lines:
+        with codecs.open('../data/causality_sentences_2.txt','a',encoding='utf-8') as fw:
+            fw.write(line+'\n')
         sus_pos_wors=[]
         words=list(segmentor.segment(line))
         postags = list(postagger.postag(words))
@@ -41,10 +43,10 @@ if __name__ == '__main__':
     d_postags=['d']#副词
     ad_postags=['d','a','b']
     line_total=[]
-    total_line=postag_list(file_path,ad_postags,line_total)
+    total_line=postag_list(file_path,n_postags,line_total)
 #     print(total_line)
-    ad_df=pd.DataFrame(total_line)
-    ad_df.to_csv('../data/ad_df.csv',encoding='utf-8')
+    n_df=pd.DataFrame(total_line)
+    n_df.to_csv('../data/n_df.csv',encoding='utf-8')
 
             
                     
