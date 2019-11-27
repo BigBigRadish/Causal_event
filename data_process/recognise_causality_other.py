@@ -43,25 +43,6 @@ class CausalityExractor():
                 break
         return a
             
-
-    def ruler10(self, sentence): 
-        '''
-        conm2:['起','作用'], ['是','原因'],['是','目的']
-        conm2_model:<Conj>{Effect},<Conj>{Cause}
-        '''
-        datas = list()
-        word_pairs =[['起','作用'], ['是','原因'],['是','目的'],['是','结果'],['是','证明']]
-        a=[[],0]
-        for word in word_pairs:
-            pattern = re.compile(r'(%s)/[v]+\s(.*)(%s)/[n|v]+\s(.*)' % (word[0],word[1]))#将句子中的词和词性进行了拼接
-#             print(sentence)
-            
-            result = pattern.findall(sentence)
-            if result:
-#                 print(sentence)
-                a=[word,1]
-                break
-        return a
     '''2由因到果配套式'''
     def ruler2(self,sentence):
         '''
@@ -84,52 +65,7 @@ class CausalityExractor():
                 a=[word,1]
                 break
         return a
-    def ruler11(self,sentence):#动词-动词，副词-副词
-        '''
-        conm1_model:<Conj>{Cause}, <Conj>{Effect}
-        '''
-        v_df_02=pd.read_csv('../data/d_df_o2.csv')#动词二元匹配
-        v_df_02_150=v_df_02[v_df_02['support']>=0.001]#支持度>0.003,大于180
-        total_pair=v_df_02_150['words'].values
-#         print(total_pair)
-        pairs=[i.split('-') for i in total_pair]
-#         datas = list()
-        word_pairs =pairs
-        a=[[],0]
-        for word in word_pairs:
-            pattern = re.compile(r'\s?(%s)/[d|v]+\s(.*)(%s)/[d|v]+\s(.*)' % (word[0], word[1]))
-#             print(pattern)
-#             print(sentence)
-            result1 = pattern.findall(sentence)
-#             print(result)
-#             data = dict()
-            if result1:
-                a=[word,1]
-                break
-        return a
-    def ruler12(self,sentence):#动词-动词-动词
-        '''
-        conm1_model:<Conj>{Cause}, <Conj>{Effect}
-        '''
-        v_df_03=pd.read_csv('../data/v_df_o3.csv')#动词三元匹配
-#         v_df_03_150=v_df_02[v_df_02['support']>=0.001]#支持度>0.003,大于180
-        total_pair=v_df_03['words'].values
-#         print(total_pair)
-        pairs=[i.split('-') for i in total_pair]
-#         datas = list()
-        word_pairs =pairs
-        a=[[],0]
-        for word in word_pairs:
-            pattern = re.compile(r'\s?(%s)/[d|v]+\s(.*)(%s)/[d|v]+\s(.*)(%s)/[d|v]+\s(.*)' % (word[0], word[1],word[2]))
-#             print(pattern)
-#             print(sentence)
-            result1 = pattern.findall(sentence)
-#             print(result)
-#             data = dict()
-            if result1:
-                a=[word,1]
-                break
-        return a
+    
     '''3由因到果居中式明确'''
     def ruler3(self, sentence):
         '''
@@ -164,6 +100,8 @@ class CausalityExractor():
             return [result[0][1],1]
         else:
             return [[],0]
+        
+        
     '''5由因到果前端式模糊'''
     def ruler5(self, sentence):#去掉'按照'
         '''
@@ -233,6 +171,114 @@ class CausalityExractor():
             return [result[0][1],1]
         else:
             return [[],0]
+        
+    def ruler10(self, sentence): 
+        '''
+        conm2:['起','作用'], ['是','原因'],['是','目的']
+        conm2_model:<Conj>{Effect},<Conj>{Cause}
+        '''
+        datas = list()
+        word_pairs =[['起','作用'], ['是','原因'],['是','目的'],['是','结果'],['是','证明']]
+        a=[[],0]
+        for word in word_pairs:
+            pattern = re.compile(r'(%s)/[v]+\s(.*)(%s)/[n|v]+\s(.*)' % (word[0],word[1]))#将句子中的词和词性进行了拼接
+#             print(sentence)
+            
+            result = pattern.findall(sentence)
+            if result:
+#                 print(sentence)
+                a=[word,1]
+                break
+        return a
+    
+    
+    def ruler11(self,sentence):#动词-动词，副词-副词
+        '''
+                    副词-副词共现规则
+        '''
+        v_df_02=pd.read_csv('../data/d_df_o2.csv')#动词二元匹配
+        v_df_02_150=v_df_02[v_df_02['support']>=0.001]#支持度>0.003,大于180
+        total_pair=v_df_02_150['words'].values
+#         print(total_pair)
+        pairs=[i.split('-') for i in total_pair]
+#         datas = list()
+        word_pairs =pairs
+        a=[[],0]
+        for word in word_pairs:
+            pattern = re.compile(r'\s?(%s)/[d|v]+\s(.*)(%s)/[d|v]+\s(.*)' % (word[0], word[1]))
+#             print(pattern)
+#             print(sentence)
+            result1 = pattern.findall(sentence)
+#             print(result)
+#             data = dict()
+            if result1:
+                a=[word,1]
+                break
+        return a
+    
+    def ruler12(self,sentence):#动词-动词-动词
+        '''
+        三元动词共现规则
+        '''
+        v_df_03=pd.read_csv('../data/v_df_o3.csv')#动词三元匹配
+#         v_df_03_150=v_df_02[v_df_02['support']>=0.001]#支持度>0.003,大于180
+        total_pair=v_df_03['words'].values
+#         print(total_pair)
+        pairs=[i.split('-') for i in total_pair]
+#         datas = list()
+        word_pairs =pairs
+        a=[[],0]
+        for word in word_pairs:
+            pattern = re.compile(r'\s?(%s)/[d|v]+\s(.*)(%s)/[d|v]+\s(.*)(%s)/[d|v]+\s(.*)' % (word[0], word[1],word[2]))
+#             print(pattern)
+#             print(sentence)
+            result1 = pattern.findall(sentence)
+#             print(result)
+#             data = dict()
+            if result1:
+                a=[word,1]
+                break
+        return a
+    
+    def ruler13(self,sentence):#动词-动词-动词
+        '''
+                    趋势动词
+        '''
+        v_df_03=pd.read_csv('../data/趋势词词典.csv')#趋势词包含趋势动词和趋势副词
+        total_pair=v_df_03['words'].values
+
+        a=[[],0]
+        for word in total_pair:
+            pattern = re.compile(r'\s?(%s)/[d|v]+\s(.*)' % (word))
+#             print(pattern)
+#             print(sentence)
+            result1 = pattern.findall(sentence)
+#             print(result)
+#             data = dict()
+            if result1:
+                a=[word,1]
+                break
+        return a
+
+    def ruler14(self,sentence):#动词-动词-动词
+        '''
+                    趋势动词
+        '''
+        v_df_03=pd.read_csv('../data/趋势词词典.csv')#趋势词包含趋势动词和趋势副词
+        total_pair=v_df_03['words'].values
+
+        a=[[],0]
+        for word in total_pair:
+            pattern = re.compile(r'\s?(%s)/[d|v]+\s(.*)' % (word))
+#             print(pattern)
+#             print(sentence)
+            result1 = pattern.findall(sentence)
+#             print(result)
+#             data = dict()
+            if result1:
+                a=[word,1]
+                break
+        return a    
 
     '''抽取主函数'''
     def recognise_causality(self, sentence):
@@ -262,12 +308,16 @@ class CausalityExractor():
             infos.append(self.ruler11(sentence)[0])
         elif self.ruler12(sentence)[1]:
             infos.append(self.ruler12(sentence)[0])
+        elif self.ruler13(sentence)[1]:
+            infos.append(self.ruler13(sentence)[0])
         else:
             return[[],0]
         return [infos,1]
 
     '''抽取主控函数'''
     def extract_main(self, content):
+        flag_true=0
+        flag_false=0
         content=self.process_content(content)
         for sent in set(content):
             words=list(segmentor.segment(sent))
@@ -279,6 +329,7 @@ class CausalityExractor():
 #             print(result)
 #             print(result)
             if result[1]:
+                flag_true+=1
                 mu = threading.Lock()
                 with codecs.open('../data/test_sentences_ture.txt','a',encoding='utf-8') as f:
                     if  mu.acquire(True): #确保文件写入成功
@@ -289,6 +340,7 @@ class CausalityExractor():
                         mu.release()
 #                 return (sent,result[0])
             else:
+                flag_false+=1
                 with codecs.open('../data/test_sentences_false.txt','a',encoding='utf-8') as f2:
                     f2.write(sent+'\n') 
 #         return datas
@@ -309,8 +361,8 @@ if __name__ == '__main__':
 #     
 #     extractor.extract_main(total_content)
     path_= r'../data/test_2.csv'
-    with codecs.open(path_,'r',encoding='utf-8') as fr:
-        total_content=fr.readlines()
+    data=pd.read_csv(path_,encoding='utf-8')
+    print(data)
     # for line in total_content:
     #     if(',1' in line):
     #         with codecs.open('../data/test_true.txt','a',encoding='utf-8') as fw:
@@ -321,5 +373,5 @@ if __name__ == '__main__':
             
             
      
-    extractor.extract_main(''.join([line.split(',')[0] for line in total_content]))
+    extractor.extract_main(''.join(data['sentences'].values))
 
