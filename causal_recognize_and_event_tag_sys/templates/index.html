@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+</head>
+<body>
+<br>
+
+<h1>Welcome {{ session['username'] }}</h1>
+<img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1573070081079&di=32c1a0bd95d2fa5dff11ecd1d959e5bb&imgtype=0&src=http%3A%2F%2Fhbimg.b0.upaiyun.com%2Fca8cfde22395855a991f0326b6d1bf806f8e834f1692-b2NM2t_fw658">
+<form action="../post" method = "POST" enctype="multipart/form-data">
+  	选择文件进行上传: <input type = "file" name = "file" /><br>
+          输入文本: <textarea name="input_txt" cols="30" rows="30"></textarea><br>
+
+    <input type="submit" name = "click" value = "上传文件" />
+
+</form >
+
+<form action="../ctag" method = "POST" enctype="multipart/form-data">
+    <input type="submit" name = "click" value = "查看所有已标注因果句文本" />
+</form>
+<form action="../cuntag" method = "POST" enctype="multipart/form-data">
+    <input type="submit" name = "click" value = "查看所有未标注因果句文本" />
+</form>
+<form action="../etag" method = "POST" enctype="multipart/form-data">
+    <input type="submit" name = "click" value = "查看所有已标注因果事件文本" />
+</form>
+<form action="../euntag" method = "POST" enctype="multipart/form-data">
+    <input type="submit" name = "click" value = "查看所有未标注因果事件文本" />
+</form>
+</body>
+</html>

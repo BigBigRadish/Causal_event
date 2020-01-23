@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>照片链接生成页</title>
+</head>
+<body>
+<br>
+<h1> {{ session['username']  }}</h1>
+    <strong>生成的照片链接:</strong> {{ generateUrl }}。请1mins中内使用，否则需要重新生成！ <br>
+    <center><img src={{ picture_detail['photourl'] }} height="500px" width="500px"/></center>
+     {% for i in Item %}
+     <form action="../pic_details" method="post" name="argform" id="argform{{i.photoname}}" enctype="multipart/form-data">
+         <input type="hidden" name="uploaddatetime"  value="{{i.datestr}} {{i.timestr}}"/>
+         <input type="hidden" name="photourl"  value="{{ i.photourl }}"/>
+         <input type="hidden" name="usercomment"  value="{{ picture_detail['usercomment'] }}"/>
+         <input type="hidden" name="userip"  value="{{ i.userip }}"/>
+         <input type="hidden" name="userID"  value="{{ i.userID }}"/>
+         <input type="hidden" name="ID"  value="{{ i.ID }}"/>
+         <input type="hidden" name="othercomment"  value="{{ picture_detail['othercomment'] }}"/>
+         <input type="hidden" name="photoname"  value="{{ i.photoname }}"/>
+         <input type="submit" name="click" value="返回照片详情页"/>
+     </form>
+     {% endfor %}
+    <form action="../picture_share" method = "POST"  name="argform1" enctype="multipart/form-data">
+        <input type="hidden" name="ID"  value="{{ picture_detail['ID'] }}"/>
+        <input type="hidden" name="photourl"  value="{{ picture_detail['photourl'] }}"/>
+        <input type="hidden" name="photoname"  value="{{ picture_detail['photoname'] }}"/>
+        <input type="submit" name= "click"  value= "再次生成"/>
+    </form >
+
+</body>
+</html>

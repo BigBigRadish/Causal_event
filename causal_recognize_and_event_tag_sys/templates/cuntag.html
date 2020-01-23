@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>因果句标注</title>
+</head>
+<body>
+
+<br>
+<h1> 用户名：{{ session['username']  }}</h1>
+<center><h2><strong>因果句标注页</strong></h2></center>
+<!--
+<form action="../picture_search" method="post">
+    <div class="search">
+        <input type="text" name="search_name" value="输入照片名字" />
+       </label><input name="search_date" type="date" value="0000-00-00"/>
+        <input type="submit" class="submit" value="搜索">
+    </div>
+</form>
+-->
+<form action="../saveCtag" method="post" >
+    {% for i in Item %}
+    <span contenteditable="true"><B>{{ i.sentence }}</B></span>&nbsp;
+        <select name="{{i._id}}">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        </select>
+    <br>
+    <br>
+    {% endfor %}
+    <br>
+    <input type="submit" class="submit" value="提交本页" >
+</form>
+<form action="../ctag" method = "POST" enctype="multipart/form-data">
+    <input type="submit" name = "click" value = "查看所有已标注因果句文本" />
+</form>
+<form action="../login" method = "POST" enctype="multipart/form-data">
+    <input type="hidden" name="username" value="{{ session['username'] }}"><br>
+        <input type="submit" name = "click" value = "返回主页" />
+</form>
+</body>
+</html>

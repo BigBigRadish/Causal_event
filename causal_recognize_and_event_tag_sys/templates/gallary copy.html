@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Photo Gallary</title>
+</head>
+<body>
+
+<br>
+<h1> {{ session['username']  }}</h1>
+
+<form action="../download" method = "POST" enctype="multipart/form-data">
+
+    Select file to download, edit or delete: <select name="files">
+    {% for i in Item %}
+        <option value="{{i.photoname}}">{{i.photoname}}</option>
+        {% endfor%}}
+    </select><br>
+<!--
+    <input type="submit" name = "download" value = "Download Image" />
+    <input type="submit" name = "download" value = "Edit Image" />
+    <input type="submit" name = "download" value = "Delete Image" />
+-->
+</form>
+{% for i in Item %}
+    <strong></strong><img src={{ i.photourl }} height="200px" width="200px"/><br>
+    <strong>upload datetime:</strong> {{ i.datestr+' '+i.timestr}} <br>
+    <strong>user ip:</strong> {{ i.userip }} <br>
+    <strong>user Comments:</strong> {{ i.comments['usercomment'] }} <br>
+    <form action="../comment" method = "POST" enctype="multipart/form-data">
+    Comments: <textarea name="comments" cols="15" rows="2"></textarea><br>
+    <input type="submit" name = "click" value = "评论" />
+    </form >
+{% endfor %}
+
+</body>
+</html>

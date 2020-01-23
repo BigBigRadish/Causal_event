@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>照片详情页</title>
+</head>
+<body>
+    <script type="text/javascript">
+        function add()
+        {
+            document.getElementById('argform').submit();
+        }
+        function generate_link(){
+            document.getElementById('argform1').submit();
+        }
+    </script>
+<br>
+<h1> {{ session['username']  }}</h1>
+    <center><a href = "javascript:;" onclick ="generate_link();"><strong></strong><img src="{{ picture_detail['photourl'] }}" height="200px" width="200px"/></a></center><br>
+    <strong>photoname:</strong> {{ picture_detail['photoname']}} <br>
+    <strong>upload datetime:</strong> {{ picture_detail['uploaddate']}} <br>
+    <strong>user ip:</strong> {{ picture_detail['userip'] }} <br>
+    <strong>user Comments:</strong> {{ picture_detail['usercomment']  }} <br>
+    <strong>other Comments:</strong>
+    {% for i in picture_detail['othercomment'].split('--') if  picture_detail['othercomment']!= None  %}
+     {{i.replace('{','').replace('}','').encode('utf-8')}} <br>
+     {% endfor %}
+    <form action="../comment" method = "POST" enctype="multipart/form-data">
+    <input type="hidden" name="userID"  value="{{ picture_detail['userID'] }}"/>
+    <input type="hidden" name="ID"  value="{{ picture_detail['ID'] }}"/>
+    <input type="hidden" name="photourl"  value="{{ picture_detail['photourl'] }}"/>
+    <input type="hidden" name="photoname"  value="{{ picture_detail['photoname'] }}"/>
+    <input type="hidden" name="uploaddate"  value="{{ picture_detail['uploaddate'] }}"/>
+    <input type="hidden" name="userip"  value="{{ picture_detail['userip'] }}"/>
+    <input type="hidden" name="usercomment"  value="{{ picture_detail['usercomment'] }}"/>
+    <input type="hidden" name="othercomment"  value="{{ picture_detail['othercomment'] }}"/>
+    Comments: <textarea name="comments" cols="15" rows="2"></textarea><br>
+    <input type="submit" name = "click" value = "评论" />
+    </form >
+    <form action="../picture_share" method = "POST"  name="argform1" enctype="multipart/form-data">
+        <input type="hidden" name="ID"  value="{{ picture_detail['ID'] }}"/>
+        <input type="hidden" name="photourl"  value="{{ picture_detail['photourl'] }}"/>
+        <input type="hidden" name="photoname"  value="{{ picture_detail['photoname'] }}"/>
+        <input type="submit" name= "click"  value= "分享图片"/>
+    </form >
+
+    <a href = "javascript:;" onclick ="add();"><B>返回前页</B></a>
+    <form action="../upload" method="post" name="argform" id="argform" enctype="multipart/form-data">
+    <input type="hidden" name= "click"  value= "View Image"/>
+    </form>
+</body>
+</html>

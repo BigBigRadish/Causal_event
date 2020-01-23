@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>因果事件标注</title>
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+        }
+
+            div {
+                width: 600px;
+                margin: 100px auto;
+            }
+        table {
+            margin-top: 10px;
+            width: 500px;
+            border: 1px solid #000;
+            border-collapse: collapse;
+        }
+        table td {
+            text-align: center;
+            border:1px solid #000 ;
+        }
+
+        table td:nth-child(1){
+            width: 100px;
+        }
+
+       
+    </style>
+</head>
+<body>
+
+<br>
+<h1> 用户名：{{ session['username']  }}</h1>
+<center><h2><strong>因果事件标注页</strong></h2></center>
+<br>
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+</script>
+<script>
+function click_b(sid){//自动添加dom元素
+    // 获取元素
+    alert(sid)
+    var y_event = document.getElementsByName("y_event"+sid)[0];//byname，绑定多个标签；id只绑定一个
+    var tishi = document.getElementsByName("tishi"+sid)[0];
+    var j_event = document.getElementsByName("j_event"+sid)[0];
+    var tbody = document.querySelector('tbody');
+    
+
+    //检测输入的内容不为空
+    if(y_event.value === '' || j_event.value === '')
+        alert('请输入内容');
+    else {
+        //创建节点
+        var tr = document.createElement('tr');
+        var td1 = document.createElement('td');
+        var td2 = document.createElement('td');
+        var td3 = document.createElement('td');
+        var td4 = document.createElement('td');
+        //获取元素内容
+        td1.innerHTML = sid
+        td2.innerHTML = y_event.value;
+        td3.innerHTML = tishi.value;
+        td4.innerHTML = j_event.value;
+        //添加内容到表格中
+        tr.append(td1);
+        tr.append(td2);
+        tr.append(td3);
+        tr.append(td4);
+        tbody.append(tr);
+    
+    }
+};
+$(document).ready(function(){//表单提交
+    $('#submitid').click(function(){
+        var result = getTable_data();
+        alert(JSON.stringify(result))
+        $("#hidid").val(JSON.stringify(result));
+        $("#argform").submit();
+    });
+
+});
+function getTable_data(){//数据打包成列表形式
+    var tr=$("tbody tr");
+    // alert(tr.length)
+    var result=[];
+    for (var i = 0;i<tr.length;i++){
+        var tds=$(tr[i]).find("td");
+        if(tds.length>0){
+            result.push({'句子ID':$(tds[0]).html(),'原因事件':$(tds[1]).html(),'因果提示词':$(tds[2]).html(),'结果事件':$(tds[3]).html()});
+        }
+    }
+    // alert(result)
+    return result;
+}
+</script>
+<!--
+<form action="../picture_search" method="post">
+    <div class="search">
+        <input type="text" name="search_name" value="输入照片名字" />
+       </label><input name="search_date" type="date" value="0000-00-00"/>
+        <input type="submit" class="submit" value="搜索">
+    </div>
+</form>
+-->
+
+    {% for i in Item %}
+    <span contenteditable="true"><B>{{ i.sentence }}</B></span>&nbsp;
+    <div>
+            <input type="text" name="y_event{{i._id}}" placeholder="原因事件" />
+            <input type="text" name="tishi{{i._id}}" placeholder="因果提示词" />
+            <input type="text" name="j_event{{i._id}}" placeholder="结果事件" />
+            <button  onclick="click_b('{{i._id}}')">添加事件</button><br />
+    </div>
+
+    <br>
+    <br>
+    {% endfor %}
+<form action="../saveEtag" method = "POST" id="argform" enctype="multipart/form-data">
+    <center>
+    <table id='eventtag'>
+            <thead>
+    
+            <tr>
+                <td>ID</td>
+                <td>原因事件</td>
+                <td>提示词</td>
+                <td>结果事件</td>
+            </tr>
+            </thead>
+            <tbody>  
+                <!--    动态添加内容  -->
+            </tbody>
+        </table>
+        <br>
+    <br>
+</center>  
+        <input type="hidden" id="hidid" value="">
+        <input type="button" id="submitid" value="提交本页" />
+    <br>
+</form>
+
+<form action="../etag" method = "POST" enctype="multipart/form-data">
+    <input type="submit" name = "click" value = "查看所有已标注因果句文本" />
+</form>
+<form action="../login" method = "POST" enctype="multipart/form-data">
+    <input type="hidden" name="username" value="{{ session['username'] }}"><br>
+        <input type="submit" name = "click" value = "返回主页" />
+</form>
+</body>
+</html>

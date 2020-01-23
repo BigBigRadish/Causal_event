@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>因果句标注</title>
+</head>
+<body>
+<script type="text/javascript">
+    function download1()
+    {
+        document.getElementById("btn1").submit();
+    }
+    function download2()
+    {
+        document.getElementById("btn2").submit();
+    }
+</script>
+
+<h1> 用户名：{{ session['username'] }}</h1>
+<center><h2><strong>含有因果关系的句子</strong></h2></center>
+<!--
+<form action="../picture_search" method="post">
+    <div class="search">
+        <input type="text" name="search_name" value="输入照片名字" />
+       </label><input name="search_date" type="date" value="0000-00-00"/>
+        <input type="submit" class="submit" value="搜索">
+    </div>
+</form>
+-->
+<form action="../saveCtag" method="post" >
+    {% for i in Item %}
+    <span contenteditable="true"><B>{{ i.sentence }}</B></span>&nbsp;
+        <select name="{{i._id}}">
+        <option value="1">1</option>
+        <option value="0">0</option>
+        </select>
+    <br>
+    <br>
+    {% endfor %}
+    <br>
+    <input type="submit" class="submit" value="更改" >
+</form>
+<form action="../downloadTag" method = "POST"  id="btn1" enctype="multipart/form-data">
+    <a   href="http://127.0.0.1:8888/download_cache/casualTag.csv" download="casualTag" onclick="download1()">下载全部已标注句子</a>
+</form>
+<form action="../downloadCasual" method = "POST" id="btn2" enctype="multipart/form-data">
+    <a   href="http://127.0.0.1:8888/download_cache/casualsentence.csv" download="casualSentences" onclick="download2()">下载全部因果句</a>
+</form>
+
+<form action="../login" method = "POST" enctype="multipart/form-data">
+    <input type="hidden" name="username" value="{{ session['username'] }}">
+        <input type="submit" name = "click" value = "返回主页" />
+</form>
+</body>
+</html>
