@@ -73,7 +73,7 @@ class CausalityExractor():
         cons2_model:{Cause},<Conj...>{Effect}
         '''
 #         print(sentence)
-        pattern1 = re.compile(r'(.*)[,，]+.*(由此|那么|让|于是|所以|故|致使|以致于?|因此|以至于?|从而|因而|正因?如此|才能|如此一来)/[p|c|v]+\s(.*)')
+        pattern1 = re.compile(r'(.*)[,，]+.*(由此|那么|让|于是|所以|故|致使|以致于?|因此|以至于?|从而|因而|正因?如此|才能|如此一来|进一步|出于|确实|)/[p|c|v]+\s(.*)')
         result1 = pattern1.findall(sentence)
         data = dict()
         if result1:
@@ -151,7 +151,7 @@ class CausalityExractor():
         verb2_model:{Effect}<Prep...>{Cause}
         '''
 
-        pattern = re.compile(r'(.*)(确实|根源于|取决|来源于|出于|取决于|缘于|在于|出自|起源于|来自|发源于|发自|源于|根源于|立足|立足于|受制于)/[p|c|d|v]+\s(.*)')
+        pattern = re.compile(r'(.*)(根源于|取决|来源于|出于|取决于|缘于|在于|出自|起源于|来自|发源于|发自|源于|根源于|立足|立足于|受制于)/[p|c|d|v]+\s(.*)')
         result = pattern.findall(sentence)
         data = dict()
         if result:
@@ -240,7 +240,7 @@ class CausalityExractor():
                 break
         return a
     
-    def ruler13(self,sentence):#动词-动词-动词
+    def ruler13(self,sentence):
         '''
                     趋势动词
         '''
@@ -260,7 +260,7 @@ class CausalityExractor():
                 break
         return a
 
-    def ruler14(self,sentence):#动词-动词-动词
+    def ruler14(self,sentence):#句法规则
         '''
                     趋势动词
         '''
