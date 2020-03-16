@@ -13,7 +13,7 @@ import pandas as pd
 from pyltp import Segmentor, Postagger, Parser, NamedEntityRecognizer, SementicRoleLabeller
 from pyltp import SentenceSplitter
 
-LTP_DIR = 'D:\LTP\MODEL\ltp_data'  # ltp模型目录的路径
+LTP_DIR =r"C:\Users\Administrator\Desktop\lzk\LTP\MODEL\ltp_data"  # ltp模型目录的路径
 segmentor = Segmentor()
 segmentor.load(os.path.join(LTP_DIR, "cws.model"))# 分词模型路径，模型名称为`cws.model`
 postagger = Postagger()
@@ -45,15 +45,15 @@ single_words_set_guidejieguo=['由此','那么','让','于是','所以','故','�
                 '拓宽','蔓延','滋生','塑造','整顿','误导','旨在','强化','已经','越来越','不断','逐步','尤其',\
                 '最终','就要','依然','几乎','日益','稳步','一度','随后','结果','以便','相继','那么','日趋',\
                 '终究','更加','随之','不能不','不得不','不至于','即将','势必','只有','更为','实际上','尽可能']
-with codecs.open(r'E:/因果抽取_1/Causal_event/data/由果溯因所有词组.txt',encoding='utf-8') as f1:
+with codecs.open(r'C:/Users/Administrator/Desktop/lzk/Causal_event/data/由果溯因所有词组.txt',encoding='utf-8') as f1:
     gy_words=f1.read().split(',')
 
 
-with codecs.open(r'E:/因果抽取_1/Causal_event/data/由因溯果所有词组.txt',encoding='utf-8') as f1:
+with codecs.open(r'C:/Users/Administrator/Desktop/lzk/Causal_event/data/由因溯果所有词组.txt',encoding='utf-8') as f1:
     yg_words=f1.read().split(',')
 
 
-triple_words=pd.read_csv(r'E:/因果抽取_1/Causal_event/data/v_df_o3.csv',encoding='utf-8')
+triple_words=pd.read_csv(r'C:/Users/Administrator/Desktop/lzk/Causal_event/data/v_df_o3.csv',encoding='utf-8')
 triple_guide_words=triple_words[:88].words.values#超参数，取多大的置信度，三元tag触发词典
 
 
@@ -99,6 +99,7 @@ def filter_casual_sentences(sentences,words):#过滤tag所在子句带？号，�
     return filter_tag#是否过滤该条语句
 
 def judge_tag_position_in_sentences_1(sentences,word):#一元tag,判断在句子中的位置，以及tag所在子句的位置
+    word=word.strip()
     tag_len=len(word)#tag的长度
     tag_head=False
     if '，' in sentences:
@@ -139,6 +140,7 @@ def get_posion_in_subsent(sentence,tag):#获取词在子句中的位置
 
 def get_p_in_subsent(sentence,tag):#得到右半段连词的位置
     # print(sentence)
+    # print(tag)
     right_sents=sentence.split(tag)[1]#因果词在右半边
     left_len=len(sentence.split(tag)[0])
     p_flag=False
@@ -179,10 +181,9 @@ def middle_tags_rule(subsents,words):#引导词在子句中间分裂规则?
                     yuanyin_sents=result1[0][2]
                     jieguo_sents=result1[0][4]
 
-
         elif tag in ['假定','只要','若是','倘或','论及','倘若','万一','只有',\
                     '倘然','若果','设使','如其','如若','假如','设或','设若',\
-                '要是','因为','按','由于','一旦','一经','依据','但凡''如果','随着','直到','如其']:
+                '要是','因为','由于','一经','依据','但凡''如果','随着','直到','如其']:
             yuanyin_sents=causal_data_array[1]
             jieguo_sents=causal_data_array[0]
         elif tag in ['根源于','取决','来源于','出于','取决于','缘于','在于',\
@@ -210,6 +211,7 @@ def middle_tags_rule(subsents,words):#引导词在子句中间分裂规则?
                 '加剧','步入','抑制','着力','指引','推动','推进','放缓','迫使','推向','放宽，期待','操纵',\
                 '加快','显现','鼓励','提振','助长','遭到','凸显','拓宽','蔓延','滋生','塑造','整顿','误导','强化']:#引导结果（加tag）
             # print(tag)
+            # print(single_sentence,words)            
             yuanyin_sents=causal_data_array[0]
             jieguo_sents=tag+causal_data_array[1]
     if len(yuanyin_sents.strip())<Rest_min_max_len or len(jieguo_sents.strip())<Rest_min_max_len:#设置子句最短长度，超参数
@@ -254,7 +256,7 @@ def split_sentences(sentences,words):#分裂句子，分裂后的原因部分和
                 elif sentens_pos==subsents_len-1:#子句位置在句尾
                     yuanyin_sents=subsents[sentens_pos]
                     jieguo_sents=subsents[:sentens_pos]
-                else:
+                else:           
                     yuanyin_sents=subsents[sentens_pos]
                     jieguo_sents=subsents[sentens_pos+1:]
 
@@ -263,7 +265,7 @@ def split_sentences(sentences,words):#分裂句子，分裂后的原因部分和
                 if tag in subsents and sentens_pos>0:#如果作为中间独有的分隔符
                     yuanyin_sents=subsents[sentens_pos+1:]
                     jieguo_sents=subsents[:sentens_pos]
-                elif tag in subsents and sentens_pos==0:#tag，,直接去掉（去噪）
+                elif tag in subsents and sentens_pos==0:#tag，,直接去掉（去噪）                
                     yuanyin_sents=''
                     jieguo_sents=''
                 elif sentens_pos==0:
@@ -322,15 +324,14 @@ def split_sentences(sentences,words):#分裂句子，分裂后的原因部分和
                 elif current_position<5 and rest_len>=Rest_min_max_len and sentens_pos!=subsents_len-1:#超参数
                     yuanyin_sents=subsents[sentens_pos]
                     jieguo_sents=subsents[sentens_pos+1:]
-                    # print(yuanyin_sents,jieguo_sents)
                 elif current_position>=5 and rest_len>=Rest_min_max_len and sentens_pos==subsents_len-1:#超参数
                     yuanyin_sents=subsents[sentens_pos]
                     jieguo_sents=subsents[:sentens_pos]
                     
                 else:
-                    yuanyin_sents,jieguo_sents,p_word=middle_tags_rule([subsents[sentens_pos]],[tag])
-                    tags=tags+'-'+p_word
-                    # print(yuanyin_sents,jieguo_sents,tag)
+                    yuanyin_sents=subsents[sentens_pos]
+                    jieguo_sents=subsents[:sentens_pos]
+                    # print(subsents,yuanyin_sents,jieguo_sents,tag)
         
 
             elif tag in single_words_set_guidejieguo:#单个词引导结果
@@ -360,12 +361,18 @@ def split_sentences(sentences,words):#分裂句子，分裂后的原因部分和
                 len_target=len(subsents[sentens_pos])
                 current_position,rest_len=get_posion_in_subsent(subsents[sentens_pos],tag)#//得到所在词当前的位置
                 if subsents_len==2 and not judeg_subsents_len(subsents,subsents[sentens_pos])  and right_sents_len>=Rest_min_max_len and lef_sents_len>=Rest_min_max_len: #因果都在一句之中
-                    yuanyin_sents=subsents[sentens_pos].split(tag)[0]
-                    jieguo_sents=tag+subsents[sentens_pos].split(tag)[1]
-                    # print(yuanyin_sents,jieguo_sents,tag)
+                    # print()
+                    yuanyin_sents=subsents[:sentens_pos]
+                    jieguo_sents=tag+subsents[sentens_pos]
+                elif  subsents_len==1:
+                    # print(subsents,tag)
+                    yuanyin_sents,jieguo_sents,_=middle_tags_rule(subsents,[tag])
+                    # print(yuanyin_sents,jieguo_sents,flag)
+                elif subsents_len==2 and  judeg_subsents_len(subsents,subsents[sentens_pos]):
+                    pass
                 else:
                     yuanyin_sents=subsents[:sentens_pos]
-                    jieguo_sents=subsents[sentens_pos]
+                    jieguo_sents=subsents[sentens_pos:]
 
 
     elif len(words)==2:
@@ -384,24 +391,30 @@ def split_sentences(sentences,words):#分裂句子，分裂后的原因部分和
                 if con_words in yg_words:#由因到果
                     yuanyin_sents=subsents[tag1_sentens_pos]
                     jieguo_sents=subsents[tag2_sentens_pos]
+                    
                 else:
-                    jieguo_sents=subsents[tag1_sentens_pos]
-                    yuanyin_sents=subsents[tag2_sentens_pos]
+                    if tag1_sentens_pos<tag2_sentens_pos:#位置判定
+                        min_tag_pos=tag1_sentens_pos
+                        max_tag_pos=tag2_sentens_pos
+                    else:
+                        min_tag_pos=tag2_sentens_pos
+                        max_tag_pos=tag1_sentens_pos
+                    yuanyin_sents=subsents[min_tag_pos:max_tag_pos]
+                    jieguo_sents=subsents[max_tag_pos:]
+                    
             else:
                 # print(sentences)
                 # print(tag1_sentens_pos,tag2_sentens_pos)
                 # print(words)
-                pattern = re.compile(r'(.*)(%s)(.*)(%s)(.*)' % (tag_1, tag_2.strip()))
-                result1 = list(pattern.findall(sentences))
-                # print(result1)
-                lef_sents=result1[0][2]
-                right_sents=result1[0][4]
-                if con_words in yg_words:#由因到果
-                    yuanyin_sents=tag_1+lef_sents
-                    jieguo_sents=tag_2+right_sents
-                else:
-                    jieguo_sents=tag_1+lef_sents
-                    yuanyin_sents=tag_2+right_sents
+                
+                lef_sents=','.join(subsents[:tag1_sentens_pos])
+                right_sents=','.join(subsents[tag1_sentens_pos:])
+                # if con_words in yg_words:#由因到果
+                yuanyin_sents=lef_sents
+                jieguo_sents=right_sents
+                # else:
+                #     jieguo_sents=tag_1+lef_sents
+                #     yuanyin_sents=tag_2+right_sents
                     # print(yuanyin_sents,jieguo_sents)
         elif con_words in ['起-作用', '是-原因','是-目的','是-结果','是-证明','之?所以-因为', '之?所以-由于', '之?所以-缘于',\
                      '之?所以-因','之?所以-鉴于','之?所以-由',\
@@ -412,6 +425,7 @@ def split_sentences(sentences,words):#分裂句子，分裂后的原因部分和
                         if tag1_sentens_pos==tag2_sentens_pos and tag1_sentens_pos>=1 and len(subsents[tag1_sentens_pos-1])>=4:
                             yuanyin_sents=subsents[:tag1_sentens_pos]
                             jieguo_sents=subsents[tag1_sentens_pos]
+                            
                         elif tag1_sentens_pos!=tag2_sentens_pos and tag1_sentens_pos>=1:
                             yuanyin_sents=subsents[tag1_sentens_pos]
                             jieguo_sents=subsents[tag2_sentens_pos]
@@ -419,8 +433,11 @@ def split_sentences(sentences,words):#分裂句子，分裂后的原因部分和
                             pass
                             
                     else:
-                        pattern = re.compile(r'(.*)(%s)(.*)(%s)(.*)' % (words[0], words[1]))#
+                        # print(words)
+                        pattern = re.compile(r'(.*)(%s)(.*)(%s)(.*)' % (words[0], words[1].strip()))#
                         result1 = pattern.findall(sentences)
+                        # print(sentences)
+                        # print(result1)
                         yuanyin_part=result1[0][4]
                         jieguo_part=result1[0][2]
                         if len(yuanyin_part.split('，'))>1:
@@ -469,7 +486,7 @@ def main(sentence,words):#分裂主控程序
     return yuanyin_sents,jieguo_sents,tags
 
 if __name__ == "__main__":
-    path=r'E:/因果抽取_1/Causal_event/data/causality_sentences.txt'
+    path=r'C:/Users/Administrator/Desktop/lzk/Causal_event/data/casual_sentence_final.txt'
     with codecs.open(path,encoding='utf-8-sig') as fr:
         sentence_lines=fr.readlines()
     all_split_sentences_tags=pd.DataFrame()
@@ -493,7 +510,7 @@ if __name__ == "__main__":
     all_split_sentences_tags['yuanyin_part']=Reasons
     all_split_sentences_tags['jieguo_part']=Results
     all_split_sentences_tags['tags']=Tags
-    all_split_sentences_tags.to_csv('E:/因果抽取_1/Causal_event/data/all_split_sentences.csv',encoding='utf-8')
+    # all_split_sentences_tags.to_csv('C:/Users/Administrator/Desktop/lzk/Causal_event/data/all_split_sentences.csv',encoding='utf-8')
 
             
 
